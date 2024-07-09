@@ -1405,7 +1405,7 @@ function displayTotalAvailability(selectElement) {
     var row = selectElement.closest('tr');
     if (selectedOption) {
         var parts = selectedOption.split('--');
-        var totalAvailability = parts[3];
+        var totalAvailability = parts[4];
         row.querySelector('.strengthDisplay').innerText = totalAvailability;
     } else {
         row.querySelector('.strengthDisplay').innerText = '';
@@ -1600,27 +1600,27 @@ $(document).ready(function() {
                                         <!--td style="width:10%; text-align:center;" class="avalcount">--</td-->
 
 
-                                        <td data-content="Days" style="width:5%;"><input type="text" maxlength="3" name="duration[]" id="duration" class="duration tblduration input-minix" placeholder="Days" onKeyPress="return ValidNumber(event)" value="" style="width:65px;" /></td>
+                                        <td data-content="Days" style="width:5%;"><input type="text" maxlength="3" name="outsideduration[]" id="duration" class="duration tblduration input-minix" placeholder="Days" onKeyPress="return ValidNumber(event)" value="" style="width:65px;" /></td>
                                         <td class="timdur2" style="width:20%; padding: 3px 1px;">
                                             <?php
 
     ?>
 
-                                            <div data-content="Morning (AM)"><input type="text" maxlength="2" name="morning[]" id="m0" class="morning input-minix" placeholder="0" onkeyup="" onkeypress="return ValidNumber(event)" value="" style="float:left;text-align:center;width:33px;margin-right:8px;padding:0px;
+                                            <div data-content="Morning (AM)"><input type="text" maxlength="2" name="Outsidemorning[]" id="m0" class="morning input-minix" placeholder="0" onkeyup="" onkeypress="return ValidNumber(event)" value="" style="float:left;text-align:center;width:33px;margin-right:8px;padding:0px;
 				"></div>
-                                            <div data-content="Noon"><input type="text" maxlength="2" name="afternoon[]" id="a0" class="afternoon input-minix" placeholder="0" onkeyup="" onkeypress="return ValidNumber(event)" value="" style="float:left;text-align:center;width:33px;margin-right:8px;padding:0px;
+                                            <div data-content="Noon"><input type="text" maxlength="2" name="Outsideafternoon[]" id="a0" class="afternoon input-minix" placeholder="0" onkeyup="" onkeypress="return ValidNumber(event)" value="" style="float:left;text-align:center;width:33px;margin-right:8px;padding:0px;
 				"></div>
-                                            <div data-content="Evening"><input type="text" maxlength="2" name="evening[]" id="e0" class="evening input-minix" placeholder="0" onkeyup="" onkeypress="return ValidNumber(event)" value="" style="float:left;text-align:center;width:33px;margin-right:8px;padding:0px;
+                                            <div data-content="Evening"><input type="text" maxlength="2" name="Outsideevening[]" id="e0" class="evening input-minix" placeholder="0" onkeyup="" onkeypress="return ValidNumber(event)" value="" style="float:left;text-align:center;width:33px;margin-right:8px;padding:0px;
 				"></div>
-                                            <div data-content="Night (PM)"><input type="text" maxlength="2" name="night[]" id="n0" class="night input-minix" placeholder="0" onkeyup="" onkeypress="return ValidNumber(event)" value="" style="float:left;text-align:center;width:33px;margin-right:8px;padding:0px;
+                                            <div data-content="Night (PM)"><input type="text" maxlength="2" name="Outsidenight[]" id="n0" class="night input-minix" placeholder="0" onkeyup="" onkeypress="return ValidNumber(event)" value="" style="float:left;text-align:center;width:33px;margin-right:8px;padding:0px;
 				">
                                         </td>
 
                                         <td data-content="Drug Type" style="width:12%;">
 
-                                            <input type="hidden" id="hiddendrugtype" name="hiddendrugtype[]" class="mastrdrug" />
+                                            <!-- <input type="hidden" id="hiddendrugtype" name="Outsidehiddendrugtype[]" class="mastrdrug" /> -->
 
-                                            <select name="drugtype[]" id="drugtype" class="select tbldrugtype " style="width:autp;">
+                                            <select name="Outsidehiddendrugtype[]" id="drugtype" class="select tbldrugtype " style="width:autp;">
 
 
 
@@ -1640,7 +1640,7 @@ $(document).ready(function() {
                                         </td>
 
 
-                                        <td data-content="AF/BF" style="width:14%;"><select name="drugintakecondition[]" id="drugintakecondition" class="select drugintakecondition py-2" style="width:auto;">
+                                        <td data-content="AF/BF" style="width:14%;"><select name="Outsidedrugintakecondition[]" id="drugintakecondition" class="select drugintakecondition py-2" style="width:auto;">
 
                                                 <?php
     $drugintakecondition = "10";
