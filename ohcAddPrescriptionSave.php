@@ -610,7 +610,7 @@ if ($saveRdraft != "TemplateOnly" && $username != "") {
                         $m++;
                     }
 
-                    $prescriptionDetailId = $Prescriptions->addohPrescriptionDetails($SqlPresID, $drugnamevalue, $duration[$q], $early_morning[$q], $morning[$q], $late_morning[$q], $afternoon[$q], $late_afternoon[$q], $evening[$q], $night[$q], $late_night[$q], $_POST['hiddendrugtype'][$q], $drugintakecondition[$q], $remarks[$q], $type);
+                    $prescriptionDetailId = $Prescriptions->addohPrescriptionDetails($SqlPresID, $drugnamevalue, $duration[$q], $early_morning[$q], $morning[$q], $late_morning[$q], $afternoon[$q], $late_afternoon[$q], $evening[$q], $night[$q], $late_night[$q], $_POST['hiddendrugtype'][$q], $drugintakecondition[$q], $remarks[$q], $type, 88);
                     unset($drugnamevalue);
                     unset($drugtypevalue);
 
