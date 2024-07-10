@@ -27,7 +27,6 @@ $_POST['hiddendrugname'] = $hddn;
 // print_r($_POST);
 // print_r($_POST['Outsidehiddendrugtype']);
 // echo "</pre>";
-// exit;
 
 define("MAX_SIZE", "30000");
 function getExtension1($str)
@@ -329,7 +328,7 @@ if ($saveRdraft != "TemplateOnly" && $username != "") {
         $UpdatePresID = $UpdatePrescription->listDirectQuery("UPDATE prescription SET doctor_id='$docname',master_specialization_id='$speclisatinname',master_hcsp_user_id='$hosname',user_id='$username',doctornotes='$dnotes',usernotes='$mnotes',sharewithdoctor='$showdoctor',isdraft='$isdraft',modifiedon='$datetime',is_conformance='$isconformo',from_date='$fromdate',conditionname='$conditionname',fav_pharmacy='$fav_pharmacy',fav_lab='$fav_lab',condition_cat='$concat',corp_id='$corp_id',ohc='$ohcs' where id='$prescriptionId'");
         $q = 0;
         if (!empty($drugname)) {
-
+            print_r($drugname); exit;
             foreach ($drugname as $val) {
 
                 $Prescription = new ManageUsers();
@@ -586,6 +585,7 @@ if ($saveRdraft != "TemplateOnly" && $username != "") {
         $tablename = "prescription";
 
         $Prescriptions = new ManageUsers();
+        print_r($drugname);
         foreach ($drugname as $val) {
             $remarks[$q] = addslashes($remarks[$q]);
             if (!empty($hiddendrugname[$q])) {
@@ -593,9 +593,9 @@ if ($saveRdraft != "TemplateOnly" && $username != "") {
                 $rowval = $rowid[$q];
                 if ($rowval == 0) {
 
-                    if ($val <> "") {
+                    if ($val <> "") { 
 
-                        $drugnames = $Prescriptions->listDirectQuery("SELECT `drug_name` FROM  `pharmacy_stock_detail` WHERE  `id`='" . $drugname[$q] . "'  or `drug_name`='" . $drugname[$q] . "'");
+                        $drugnames = $Prescriptions->listDirectQuery("SELECT * FROM  `pharmacy_stock_detail` WHERE  `id`='" . $drugname[$q] . "'  or `drug_name`='" . $drugname[$q] . "'");
                         $drugnamevalue = $drugnames[0]['drug_name'];
                         $drugtypevalue = $drugtype[$q];
                         $type = 1;
@@ -609,8 +609,12 @@ if ($saveRdraft != "TemplateOnly" && $username != "") {
                         $type = 1;
                         $m++;
                     }
-
-                    $prescriptionDetailId = $Prescriptions->addohPrescriptionDetails($SqlPresID, $drugnamevalue, $duration[$q], $early_morning[$q], $morning[$q], $late_morning[$q], $afternoon[$q], $late_afternoon[$q], $evening[$q], $night[$q], $late_night[$q], $_POST['hiddendrugtype'][$q], $drugintakecondition[$q], $remarks[$q], $type, 88);
+                    $input = $_POST['hiddendrugname'][$q];
+                    $firstPart = substr($input, 0, strpos($input, '('));
+                    $sql = "SELECT id FROM drug_template WHERE drug_name='" . $firstPart . "'";
+                    $sql = $Prescriptions->listDirectQuery($sql);
+                    $templateId = $sql[0]['id'];
+                    $prescriptionDetailId = $Prescriptions->addohPrescriptionDetails($SqlPresID, $drugnamevalue, $duration[$q], $early_morning[$q], $morning[$q], $late_morning[$q], $afternoon[$q], $late_afternoon[$q], $evening[$q], $night[$q], $late_night[$q], $_POST['hiddendrugtype'][$q], $drugintakecondition[$q], $remarks[$q], $type, $templateId);
                     unset($drugnamevalue);
                     unset($drugtypevalue);
 

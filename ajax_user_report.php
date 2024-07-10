@@ -1,1247 +1,903 @@
-<?php include "../session.php";
-include_once "../core/class.manageSettings.php";
-include_once "../core/class.manageMessage.php";
-$today = date(Y - m - d);
-extract($_REQUEST);
-$dataobj = new ManageMessage();
-$sus = $_POST["sus"];
-$user_id = $_SESSION["userid"];
-$parameter = $_POST["parameter"];
-// echo "Parameter: " . $parameter . "<br>";
-// print_r($_POST);
-$fromdate = date("Y-m-d", strtotime(str_replace("/", "-", $_POST["fromdate"])));
-$todate = date("Y-m-d", strtotime(str_replace("/", "-", $_POST["todate"])));
-$whr = "";
-if ($todate != "1970-01-01") {
-    $whr .= " and test_date<='$todate'";
-}
-if ($fromdate != "1970-01-01") {
-    $whr .= " and test_date>='$fromdate'";
-}
-$heights = $dataobj->listDirectQuery("select heights from master_user_details  where id=" . $user_id);
-$userheight = $heights[0]["heights"];
-// 91, 228, 95
-$real_parameters = $parameter;
-$parameter = explode(",", $parameter);
-// print_r($parameter);
-// echo "<br>Array Count: " . count($parameter);
-if (in_array(91, $parameter) and in_array(95, $parameter) and in_array(228, $parameter)) {
-    if (isset($sus)) {
-        // echo "select test_results,test_date from prescribed_tests  where user_id='$sus' AND test_id in (" . $parameter . ") AND test_results!=''  " . $whr . " order by test_date asc ";
-        // $sql = $dataobj->listDirectQuery("select test_results,test_date from prescribed_tests  where user_id='$sus' AND test_id in (" . $parameter . ") AND test_results!=''  " . $whr . " order by test_date asc ");
-        $sql = $dataobj->listDirectQuery("SELECT test_id, test_results, test_date " . "FROM prescribed_tests " . "WHERE test_id IN ( " . $parameter[0] . ", " . $parameter[1] . ") " . "AND user_id = '" . $sus . "' " . "AND test_results IS NOT NULL " . "AND test_results <> '' " . "AND test_date IN ( " . "    SELECT test_date " . "    FROM prescribed_tests " . "    WHERE test_id = " . $parameter[0] . " AND user_id = '" . $sus . "' " . "    INTERSECT " . "    SELECT test_date " . "    FROM prescribed_tests " . "    WHERE test_id = " . $parameter[1] . " AND user_id = '" . $sus . "' " . ")");
-        $sql_95 = $dataobj->listDirectQuery("SELECT test_id, test_results, test_date
-                FROM prescribed_tests
-                WHERE test_id = '$parameter[2]'
-                AND user_id = '$sus'
-                AND test_results IS NOT NULL
-                AND test_results <> ''
-                AND test_date IN (
-                    SELECT test_date
-                    FROM prescribed_tests
-                    WHERE test_id = '$parameter[2]' AND user_id = '$sus'
-                )");
-    } else {
-        // $sql = $dataobj->listDirectQuery("select test_results,test_date from prescribed_tests  where user_id='$user_id' AND test_id in ('" . $parameter . "')  AND test_results!=''  " . $whr . " order by test_date asc ");
-        $sql = $dataobj->listDirectQuery("SELECT test_id, test_results, test_date " . "FROM prescribed_tests " . "WHERE test_id IN ( " . $parameter[0] . ", " . $parameter[1] . ") " . "AND user_id = '" . $user_id . "' " . "AND test_results IS NOT NULL " . "AND test_results <> '' " . "AND test_date IN ( " . "    SELECT test_date " . "    FROM prescribed_tests " . "    WHERE test_id = " . $parameter[0] . " AND user_id = '" . $user_id . "' " . "    INTERSECT " . "    SELECT test_date " . "    FROM prescribed_tests " . "    WHERE test_id = " . $parameter[1] . " AND user_id = '" . $user_id . "' " . ")");
-        $sql_95 = $dataobj->listDirectQuery("SELECT test_id, test_results, test_date
-                FROM prescribed_tests
-                WHERE test_id = '$parameter[2]'
-                AND user_id = '$user_id'
-                AND test_results IS NOT NULL
-                AND test_results <> ''
-                AND test_date IN (
-                    SELECT test_date
-                    FROM prescribed_tests
-                    WHERE test_id = '$parameter[2]' AND user_id = '$user_id'
-                )");
-    }
-    $dashboard_data1 = $dataobj->listDirectQuery("select test_name as title,unit from  master_test where id ='$real_parameters'");
-    if ($dashboard_data1[0]["title"] == "Weight") {
-        $titlecard1 = "BMI";
-    } else {
-        $titlecard1 = $dashboard_data1[0]["title"];
-        $unitcard1 = $dashboard_data1[0]["unit"];
-    }
-    $results_91 = [];
-    $result_95 = [];
-    $results_228 = [];
-    $testdate = [];
-    $testdate_2 = [];
-    foreach ($sql as $row) {
-        $testdate[] = "'" . date("M-Y", strtotime($row["test_date"])) . "'";
-    }
-    foreach ($sql_95 as $row) {
-        $testdate_2[] = "'" . date("M-Y", strtotime($row["test_date"])) . "'";
-    }
-    // print_r($testdate);
-    // print_r($testdate_2);
-    foreach ($sql as $row) {
-        if ($row["test_id"] == 91) {
-            $results_91[] = $row["test_results"];
-        } elseif ($row["test_id"] == 228) {
-            $results_228[] = $row["test_results"];
-        }
-    }
-    foreach ($sql_95 as $row) {
-        if ($row["test_id"] == 95) {
-            $results_95[] = $row["test_results"];
-        }
-    }
-} elseif ($parameter[0] == 276 and $parameter[1] == 204) {
-    if (isset($sus)) {
-        $sql = $dataobj->listDirectQuery("SELECT test_id, test_results, test_date " . "FROM prescribed_tests " . "WHERE test_id IN ( " . $parameter[0] . ", " . $parameter[1] . ") " . "AND user_id = '" . $sus . "' " . "AND test_results IS NOT NULL " . "AND test_results <> '' " . "AND test_date IN ( " . "    SELECT test_date " . "    FROM prescribed_tests " . "    WHERE test_id = " . $parameter[0] . " AND user_id = '" . $sus . "' " . "    INTERSECT " . "    SELECT test_date " . "    FROM prescribed_tests " . "    WHERE test_id = " . $parameter[1] . " AND user_id = '" . $sus . "' " . ")");
-    } else {
-        $sql = $dataobj->listDirectQuery("SELECT test_id, test_results, test_date " . "FROM prescribed_tests " . "WHERE test_id IN ( " . $parameter[0] . ", " . $parameter[1] . ") " . "AND user_id = '" . $sus . "' " . "AND test_results IS NOT NULL " . "AND test_results <> '' " . "AND test_date IN ( " . "    SELECT test_date " . "    FROM prescribed_tests " . "    WHERE test_id = " . $parameter[0] . " AND user_id = '" . $user_id . "' " . "    INTERSECT " . "    SELECT test_date " . "    FROM prescribed_tests " . "    WHERE test_id = " . $parameter[1] . " AND user_id = '" . $user_id . "' " . ")");
-    }
-    // print_r($sql); exit;
-    $dates = [];
-    foreach ($sql as $item) {
-        $date = $item["test_date"];
-        $test_id = $item["test_id"];
-        if (!isset($dates[$date])) {
-            $dates[$date] = [];
-        }
-        $dates[$date][] = $test_id;
-    }
-    $filtered = [];
-    foreach ($sql as $item) {
-        $date = $item["test_date"];
-        $test_id = $item["test_id"];
-        if (isset($dates[$date]) && count(array_unique($dates[$date])) > 1) {
-            $filtered[] = $item;
-        }
-    }
-    $sql = $filtered;
-    $dashboard_data1 = $dataobj->listDirectQuery("SELECT test_name AS title, unit 
-FROM master_test
-WHERE id IN (" . $real_parameters . ");
-");
-    if ($dashboard_data1[0]["title"] == "Weight") {
-        $titlecard1 = "BMI";
-    } else {
-        $titlecard1 = $dashboard_data1[0]["title"];
-        $unitcard1 = $dashboard_data1[0]["unit"];
-    }
-    if (count($parameter) == 1) {
-        $results_1 = [];
-        foreach ($sql as $row) {
-            $results_1[] = $row["test_results"];
-        }
-    }
-    foreach ($sql as $chol) {
-        $testdate[] = "'" . date("M-Y", strtotime($chol["test_date"])) . "'";
-        $result[] = round($chol["test_results"]);
-    }
-    $results_1 = [];
-    $results_2 = [];
-    $PressureDates = [];
-    foreach ($sql as $row) {
-        if ($row["test_id"] == 204) {
-            $results_1[] = $row["test_results"];
-        } elseif ($row["test_id"] == 276) {
-            $results_2[] = $row["test_results"];
-        }
-    }
-    $result_276 = [];
-    $results_204 = [];
-    foreach ($sql as $row) {
-        if ($row["test_id"] == 276) {
-            $results_276[] = $row["test_results"];
-        } elseif ($row["test_id"] == 204) {
-            $results_204[] = $row["test_results"];
-        }
-    }
-    foreach ($sql as $row) {
-        $PressureDates[] = $row["test_date"];
-    }
-} else {
-    if (isset($sus)) {
-        $sql = "SELECT test_results, test_date, test_id 
-                FROM prescribed_tests  
-                WHERE user_id='$sus' 
-                  AND test_id IN (" . $real_parameters . ") 
-                  AND test_results != '' " . $whr . " 
-                ORDER BY test_date ASC";
-    } else {
-        $sql = "SELECT test_results, test_date, test_id 
-                FROM prescribed_tests  
-                WHERE user_id='$user_id' 
-                  AND test_id IN (" . $real_parameters . ") 
-                  AND test_results != '' " . $whr . " 
-                ORDER BY test_date ASC";
-    }
-
-
-    // echo "SQL: " . $sql;
-    $sql = $dataobj->listDirectQuery($sql);
-    if (count($parameter) > 1) {
-        // echo "<br>Sql: " . $sql;
-        // echo "<br>All Test Ids: " . $real_parameters;
-        // echo "<pre>";
-        // print_r($sql);
-        // echo "</pre>";
-        $array = $sql;
-        $test_ids = array($real_parameters);
-        $test_ids = explode(',', $test_ids[0]);
-        // echo "<br>Test Ids: ";
-        // print_r($test_ids);
-        $dates = [];
-        foreach ($array as $item) {
-            if (in_array($item['test_id'], $test_ids)) {
-                $dates[$item['test_id']][] = $item['test_date'];
-            }
-        }
-        $common_dates = call_user_func_array('array_intersect', array_values($dates));
-        $result = array_filter($array, function ($item) use ($common_dates) {
-            return in_array($item['test_date'], $common_dates);
-        });
-        // echo "<hr>";
-        // echo "<pre>";
-        // print_r($result);
-        // echo "</pre>";
-        $sql = $result;
-    }
-
-
-    $resultsByTestId = [];
-    foreach ($sql as $row) {
-        $test_id = $row["test_id"];
-        $test_date = $row["test_date"];
-        $test_result = $row["test_results"];
-        if (!isset($resultsByTestId[$test_id])) {
-            $resultsByTestId[$test_id] = [];
-        }
-        if (!isset($resultsByTestId[$test_id][$test_date])) {
-            $resultsByTestId[$test_id][$test_date] = [];
-        }
-        $resultsByTestId[$test_id][$test_date][] = $test_result;
-    }
-    $testdate = [];
-    foreach ($sql as $row) {
-        $testdate[] = "'" . date("M-Y", strtotime($row["test_date"])) . "'";
-    }
-    if (count($parameter) > 1) {
-        $dashboard_data1 = [];
-        for ($i = 0;$i < count($parameter);$i++) {
-            $dashboard_data1[] = $dataobj->listDirectQuery("SELECT test_name AS title, unit, id
-            FROM master_test 
-            WHERE id = '$parameter[$i]'");
-        }
-    } else {
-        $dashboard_data1 = $dataobj->listDirectQuery("SELECT test_name AS title, unit
-                                                  FROM master_test 
-                                                  WHERE id = '$real_parameters'");
-    }
-    if ($dashboard_data1[0]["title"] == "Weight") {
-        $titlecard1 = "BMI";
-    } else {
-        $titlecard1 = $dashboard_data1[0]["title"];
-        $unitcard1 = $dashboard_data1[0]["unit"];
-    }
-    $finalResults = [];
-    $i = 0;
-    foreach ($resultsByTestId as $test_id => $dates) {
-        $i++;
-        foreach ($dates as $date => $results) {
-            $finalResults[$test_id]["dates"][] = $date;
-            $finalResults[$test_id]["results"][] = $results;
-        }
-    }
-}
-if ($real_parameters == 276) {
-    $sqlCustom = "SELECT group_concat(test_id),group_concat(test_date) as tdate  FROM `prescribed_tests` WHERE user_id='$suser' AND `test_id` IN ('276','204') and test_results!='' group by test_date order by test_date desc";
-    $datecount = $dataobj->listDirectQuery($sqlCustom);
-    foreach ($datecount as $count) {
-        if (strpos($count["tdate"], ",") == true) {
-            $onedata = explode(",", $count["tdate"]);
-            $samedate[] = $onedata[0];
-        }
-    }
-    $bpdate = array_unique($samedate);
-    $bppdate = implode("','", $bpdate);
-    $whr .= " and test_date in ('" . $bppdate . "')";
-    //echo "select test_results,test_date from prescribed_tests  where user_id='$suser' and test_id ='".$doublevalue[0]."' ".$whr." and test_results!='' and test_date>='".$firstfromdate."' and test_date <= '".$firsttodate."' order by test_date asc limit 3";
-    $triglyeroid = $dataobj->listDirectQuery("select test_results,test_date from prescribed_tests  where user_id='$suser' and test_id ='" . $doublevalue[0] . "' " . $whr . " and test_results!='' and test_date>='" . $firstfromdate . "' and test_date <= '" . $firsttodate . "' order by test_date asc limit 3");
-    foreach ($triglyeroid as $tri) {
-        $testdatee[] = "'" . date("M-Y", strtotime($tri["test_date"])) . "'";
-        $results[] = $tri["test_results"];
-    }
-    $secondvalue2 = $dataobj->listDirectQuery("select test_results,test_date from prescribed_tests  where user_id='$suser' and test_id ='" . $doublevalue[1] . "' " . $whr . " and test_results!='' order by test_date asc limit 3");
-    foreach ($secondvalue2 as $svv) {
-        //$testdate[]=$chol['test_date'];
-        $second_testdate2[] = "'" . date("M-Y", strtotime($svv["test_date"])) . "'";
-        $second_result2[] = $svv["test_results"];
-    }
-}
-if ($sql == 0) {
-    $int_rand = rand();
-    echo "<br><br><h3>No Data available !! => Flag: " . $int_rand . "<h3>";
-    exit();
-}
-?>
-<div style="width:100%; display: flex; flex-wrap: wrap; justify-content: center;">
-    <!-- First graph and table -->
-    <?php if (in_array(91, $parameter) and in_array(95, $parameter) and in_array(228, $parameter)) { ?>
-        <div style="width:45%; margin: 2%; padding: 1%;">
-            <div id="ajcon1" style="min-width: 250px; height: 250px; margin: 0 auto;">
-            </div>
-            <div style="width:100%; padding: 0 1%; float: left;">
-                <table cellpadding="5" cellspacing="5" width="100%" align="center" border="1" class="table tableborder ajaxemp table-striped">
-                    <tr>
-                        <td colspan=3 align=center><b><?php echo $titlecard1; ?>Blood Glucose</b></td>
-                    </tr>
-                    <tr class="bold" style="color:#fff; background-color:#<?php echo $_SESSION["tclr"]; ?>;">
-                        <th width=50% style="text-align:center;">Date</th>
-                        <th width=25% style="text-align:center;">Fasting</th>
-                        <th width=25% style="text-align:center;">PP</th>
-                    </tr>
-                    <?php
-    $grouped = [91 => [], 228 => [], ];
-        foreach ($sql as $item) {
-            if ($item["test_id"] == 91) {
-                $grouped[91][] = $item;
-            } elseif ($item["test_id"] == 228) {
-                $grouped[228][] = $item;
-            }
-        }
-        $resultsByDate = [];
-        foreach ($grouped[91] as $item) {
-            $resultsByDate[$item["test_date"]]["fasting"] = $item["test_results"];
-        }
-        foreach ($grouped[228] as $item) {
-            $resultsByDate[$item["test_date"]]["pp"] = $item["test_results"];
-        }
-        //print_r($resultsByDate);
-        foreach ($resultsByDate as $date => $results) {
-            $formattedDate = date("d-m-Y", strtotime($date));
-            $fastingResult = isset($results["fasting"]) ? $results["fasting"] : "-";
-            $ppResult = isset($results["pp"]) ? $results["pp"] : "-";
-            ?>
-                        <tr>
-                            <td>
-                                <center><?php echo $formattedDate; ?></center>
-                            </td>
-                            <td>
-                                <center><?php echo $fastingResult; ?></center>
-                            </td>
-                            <td>
-                                <center><?php echo $ppResult; ?></center>
-                            </td>
-                        </tr>
-                    <?php
-        }
-        ?>
-                </table>
-
-            </div>
-        </div>
-        <div style="width:45%; margin: 2%; padding: 1%;">
-            <div id="ajcon2" style="min-width: 250px; height: 250px; margin: 0 auto;">
-            </div>
-            <div style="width:100%; padding: 0 1%; float: left;">
-                <table cellpadding="5" cellspacing="5" width="100%" align="center" border="1" class="table tableborder ajaxemp table-striped">
-                    <tr>
-                        <td colspan=2 align=center><b><?php echo $titlecard1; ?>Hb A1C</b></td>
-                    </tr>
-                    <tr class="bold" style="color:#fff; background-color:#<?php echo $_SESSION["tclr"]; ?>;">
-                        <th width=50% style="text-align:center;">Date</th>
-                        <th width=50% style="text-align:center;">Value</th>
-                    </tr>
-                    <?php foreach ($sql_95 as $chart_details) {
-                        $testdats = date("d-m-Y", strtotime($chart_details["test_date"])); ?>
-                        <tr>
-                            <td>
-                                <center><?php echo $testdats; ?></center>
-                            </td>
-                            <td>
-                                <center><?php echo $chart_details["test_results"]; ?></center>
-                            </td>
-                        </tr>
-                    <?php
-                    } ?>
-                </table>
-            </div>
-        </div>
-    <?php
-    } elseif ($parameter[0] == 276 and $parameter[1] == 204) { ?>
-        <div class="container" style="display: flex;">
-            <div id="ajcon1" class="left" style="min-width: 250px; height: 250px; margin: 0 auto; width: 75%;">
-            </div>
-            <div class="right" style="width: 25%; padding: 1%;">
-                <table cellpadding="5" cellspacing="5" width="100%" align="center" border="1" class="table tableborder ajaxemp table-striped">
-                    <tr>
-                        <td colspan=3 align=center><b><?php echo $titlecard1; ?>Blood Glucose</b></td>
-                    </tr>
-                    <tr class="bold" style="color:#fff; background-color:#<?php echo $_SESSION["tclr"]; ?>;">
-                        <th width=50% style="text-align:center;">Date</th>
-                        <th width=25% style="text-align:center;"><?php echo $dashboard_data1[1]["title"]; ?></th>
-                        <th width=25% style="text-align:center;"><?php echo $dashboard_data1[0]["title"]; ?></th>
-                    </tr>
-                    <?php
-        $grouped = [276 => [], 204 => [], ];
-        foreach ($sql as $item) {
-            if ($item["test_id"] == 276) {
-                $grouped[276][] = $item;
-            } elseif ($item["test_id"] == 204) {
-                $grouped[204][] = $item;
-            }
-        }
-        $resultsByDate = [];
-        foreach ($grouped[276] as $item) {
-            $resultsByDate[$item["test_date"]]["fasting"] = $item["test_results"];
-        }
-        foreach ($grouped[204] as $item) {
-            $resultsByDate[$item["test_date"]]["pp"] = $item["test_results"];
-        }
-        foreach ($resultsByDate as $date => $results) {
-            $formattedDate = date("d-m-Y", strtotime($date));
-            $fastingResult = isset($results["fasting"]) ? $results["fasting"] : "-";
-            $ppResult = isset($results["pp"]) ? $results["pp"] : "-";
-            ?>
-                        <tr>
-                            <td>
-                                <center><?php echo $formattedDate; ?></center>
-                            </td>
-                            <td>
-                                <center><?php echo $fastingResult; ?></center>
-                            </td>
-                            <td>
-                                <center><?php echo $ppResult; ?></center>
-                            </td>
-                        </tr>
-                    <?php
-        }
-        ?>
-                </table>
-            </div>
-        </div>
-
-    <?php
-    } elseif (count($parameter) == 1) { ?>
-        <div class="container" style="display: flex;">
-            <div id="ajcon1" class="left" style="min-width: 250px; height: 250px; margin: 0 auto; width: 60%;">
-            </div>
-            <div class="right" style="width: 40%; padding: 1%;">
-                <table cellpadding="5" cellspacing="5" width="100%" align="center" border="1" class="table tableborder ajaxemp table-striped">
-                    <tr>
-                        <td colspan=2 align=center><b><?php echo $titlecard1; ?>(<?php echo $unitcard1; ?>)</b></td>
-                    </tr>
-                    <tr class="bold" style="color:#fff; background-color:#<?php echo $_SESSION["tclr"]; ?>;">
-                        <th width=50% style="text-align:center;">Date</th>
-                        <th width=50% style="text-align:center;"><?php echo $dashboard_data1[0]["title"]; ?></th>
-                    </tr>
-                    <?php
-        function date_compare($a, $b)
-        {
-            $t1 = strtotime($a["test_date"]);
-            $t2 = strtotime($b["test_date"]);
-            return $t1 - $t2;
-        }
-        usort($sql, "date_compare");
-        $allResults = [];
-        foreach ($sql as $chart_details) {
-            $testdats = date("d-m-Y", strtotime($chart_details["test_date"]));
-            $allResults[] = $chart_details["test_results"];
-            ?>
-                        <tr>
-                            <td>
-                                <center><?php echo $testdats; ?></center>
-                            </td>
-                            <td>
-                                <center><?php echo $chart_details["test_results"]; ?></center>
-                            </td>
-                        </tr>
-                    <?php
-        }
-        ?>
-                </table>
-            </div>
-        </div>
-
-    <?php
-    } elseif (count($parameter) == 2) { ?>
-        <div style="width:45%; margin: 2%; padding: 1%;">
-            <div id="ajcon1" style="min-width: 250px; height: 250px; margin: 0 auto;">
-            </div>
-            <div style="width:100%; padding: 0 1%; float: left;">
-                <table cellpadding="5" cellspacing="5" width="100%" align="center" border="1" class="table tableborder ajaxemp table-striped">
-                    <tr>
-                        <td colspan=2 align=center><b><?php echo $titlecard1; ?>(<?php echo $unitcard1; ?>)</b></td>
-                    </tr>
-                    <tr class="bold" style="color:#fff; background-color:#<?php echo $_SESSION["tclr"]; ?>;">
-                        <th width=50% style="text-align:center;">Date</th>
-                        <th width=25% style="text-align:center;">Fasting</th>
-                    </tr>
-                    <?php foreach ($sql as $chart_details) {
-                        $testdats = date("d-m-Y", strtotime($chart_details["test_date"])); ?>
-                        <tr>
-                            <td>
-                                <center><?php echo $testdats; ?></center>
-                            </td>
-                            <td>
-                                <center><?php echo $chart_details["test_results"]; ?></center>
-                            </td>
-                        </tr>
-                    <?php
-                    } ?>
-                </table>
-            </div>
-        </div>
-    <?php
-    } else {
-        $formattedResults = "";
-        $idToTitle = [];
-        $title = [];
-        $data = [];
-        foreach ($dashboard_data1 as $dataItem) {
-            $idToTitle[$dataItem[0]["id"]] = $dataItem[0]["title"];
-        }
-        foreach ($dashboard_data1 as $dataItem) {
-            $title[] = $dataItem[0]["title"];
-        }
-        $grouped_data = [];
-        // Extract and group data by date
-        foreach ($finalResults as $id => $result) {
-            $currentTitle = isset($idToTitle[$id]) ? $idToTitle[$id] : "";
-            if ($currentTitle) {
-                foreach ($result["dates"] as $index => $date) {
-                    if (!isset($grouped_data[$date])) {
-                        $grouped_data[$date] = array_fill(0, count($title), "");
-                    }
-                    $grouped_data[$date][array_search($currentTitle, $title) ] = $result["results"][$index][0];
-                }
-            }
-        }
-        ?>
-        <div class="container" style="display: flex;">
-            <div id="ajcon1" class="left" style="min-width: 250px; height: 250px; margin: 0 auto; width: 60%;"></div>
-            <div class="right" style="width: 40%; padding: 1%;">
-                <table cellpadding="5" cellspacing="5" width="100%" align="center" border="1" class="table tableborder ajaxemp table-striped">
-                    <tr>
-                        <td align="center" colspan="<?php echo count($title) + 1; ?>">
-                            <b><?php echo $_POST["test_name"]; ?></b>
-                        </td>
-                    </tr>
-                    <tr class="bold" style="color:#fff; background-color:#<?php echo $_SESSION["tclr"]; ?>;">
-                        <th style="text-align:center;">Date</th>
-                        <?php foreach ($title as $columnTitle) { ?>
-                            <th style="text-align:center;"><?php echo $columnTitle; ?></th>
-                        <?php
-                        } ?>
-                    </tr>
-                    <?php foreach ($grouped_data as $date => $results) { ?>
-                        <tr>
-                            <td style="text-align:center;"><?php echo date("d-m-Y", strtotime($date)); ?></td>
-                            <?php foreach ($results as $result) { ?>
-                                <td style="text-align:center;"><?php echo $result; ?></td>
-                            <?php
-                            } ?>
-                        </tr>
-                    <?php
-                    } ?>
-                </table>
-            </div>
-        </div>
-
-
-
-    <?php
-    } ?>
-</div>
-
 <?php
-    //echo "select all_ques as qid from hra_coporate_element where  corp_id= '".$_SESSION['ucorp_id']."' and all_ques!='' ";
-    $sel = $dataobj->listDirectQuery("select all_ques as qid from hra_coporate_element where  corp_id= '" . $_SESSION["ucorp_id"] . "' and all_ques!='' ");
-$qst = $sel[0]["qid"];
-if ($qst != "") {
-    $qars = explode(",", $qst);
-} else {
-    $qars = "";
-}
-$ind = $dataobj->listDirectQuery("select * from hra_induresults where r_corporate_id='" . $_SESSION["ucorp_id"] . "'");
-if ($qst != "") {
-    $charttitle = $dataobj->listDirectQuery("select dashtext,id from  hra_question where id in($qst)");
-}
-$w = 1;
-foreach ($qars as $qr) {
-    $high = $dataobj->listDirectQuery("select high_data from hra_templates where qus_id='$qr' ");
-    $hg = $high[0]["high_data"];
-    //var_dump($_SESSION);
-    //echo "SELECT cmp_date as end_date  FROM  `hra_induresults` hra left join `doctype` d  on hra.tempid=d.id where d.type='HRAG' and hra.location='".$_SESSION['ucorp_id']."'  and hra.userid='".$_SESSION['userid']."' and hra.cmp_date<='".$today."' GROUP BY YEAR(cmp_date)";
-    //exit;
-    //$sltm=$dataobj->listDirectQuery("SELECT cmp_date as end_date  FROM  `hra_induresults` where r_corporate_id='".$_SESSION['parent_id']."'  and userid in ($r_usermid) and cmp_date<='".$todateformat."' GROUP BY YEAR(cmp_date)" );
-    $sltm = $dataobj->listDirectQuery("SELECT cmp_date as end_date  FROM  `hra_induresults` hra left join `doctype` d  on hra.tempid=d.id where d.type='HRAG' and hra.location='" . $_SESSION["ucorp_id"] . "'  and hra.userid='" . $_SESSION["userid"] . "' and hra.cmp_date<='" . $today . "' GROUP BY YEAR(cmp_date)");
-    foreach ($sltm as $mnyr) {
-        $ {
-            "yrsar" . $w
-        }
-        [] = $mnyr["end_date"];
-        //if(!empty($r_usermid)) {
-        //	echo "select count(id) as xcnt ,fromdate from corporate_user_mapping where r_corporate_id='".$_SESSION['ucorp_id']."' and  isactive='1' and r_user_id='".$_SESSION['userid']."' and fromdate <= '".$mnyr['end_date']."' ";
-        //	exit;
-        //echo "select count(id) as xcnt ,fromdate from corporate_user_mapping where r_corporate_id='".$_SESSION['ucorp_id']."' and  isactive='1' and r_user_id='".$_SESSION['userid']."' and fromdate <= '".$mnyr['end_date']."' ";
-        //echo  "</br>";
-        $excnt = $dataobj->listDirectQuery("select count(id) as xcnt ,fromdate from corporate_user_mapping where r_corporate_id='" . $_SESSION["ucorp_id"] . "' and  isactive='1' and r_user_id='" . $_SESSION["userid"] . "' and fromdate <= '" . $mnyr["end_date"] . "' ");
-        //}
-        $ {
-            "xcnts" . $w
-        }
-        [] = $excnt[0]["xcnt"];
-    }
-    //if(!empty($r_usermid)) {
-    if ($qr != 0) {
-        //${"chartvalqry".$w}=$dataobj->listDirectQuery("select count(a.`id`) as val, b.end_date as month1,hra.cmp_date as month from `hra_results` a LEFT JOIN corp_template_assign b on b.id=a.ctmp_id left join hra_induresults hra on hra.tempid=a.tempid
-        //where a.qus_id='$qr' and a.pnts in ($hg)  and a.userid in ($r_usermid) and hra.cmp_date<='".$todateformat."' GROUP BY YEAR(cmp_date)");
-        //echo "select count(a.`id`) as val, b.end_date as month1,hra.cmp_date as month from `hra_results` a LEFT JOIN corp_template_assign b on b.id=a.ctmp_id  left join hra_induresults hra on hra.userid=a.userid   left join `doctype` d on  hra.tempid=d.id   where  d.type='HRAG' and a.qus_id='$qr' and a.pnts in ($hg)  and a.userid='".$_SESSION['userid']."' and hra.cmp_date<='".$today."' and hra.location='".$_SESSION['ucorp_id']."' GROUP BY YEAR(hra.cmp_date) ";
-        // exit;
-        $ {
-            "chartvalqry" . $w
-        } = $dataobj->listDirectQuery("select count(a.`id`) as val, b.end_date as month1,hra.cmp_date as month from `hra_results` a LEFT JOIN corp_template_assign b on b.id=a.ctmp_id  left join hra_induresults hra on hra.userid=a.userid   left join `doctype` d on  hra.tempid=d.id   where  d.type='HRAG' and a.qus_id='$qr' and a.pnts in ($hg)  and a.userid='" . $_SESSION["userid"] . "' and hra.cmp_date<='" . $today . "' and hra.location='" . $_SESSION["ucorp_id"] . "' GROUP BY YEAR(hra.cmp_date) ");
-        //echo "select count(a.`id`) as val, b.end_date as month1,hra.cmp_date as month from `hra_results` a LEFT JOIN corp_template_assign b on b.id=a.ctmp_id  left join hra_induresults hra on hra.userid=a.userid   left join `doctype` d on  hra.tempid=d.id   where  d.type='HRAG' and a.qus_id='$qr' and a.pnts in ($hg)  and a.userid in ($r_usermid) and hra.cmp_date<='".$todateformat."' and hra.r_corporate_id='".$_SESSION['parent_id']."' GROUP BY YEAR(hra.cmp_date) ";
+include('session.php');
 
+include_once('core/class.manageUsers.php');
+include_once('core/class.manageMasters.php');
+include_once('dateconvert.php');
+$testdata = $_POST['testdata'];
+$hddn = [];
+foreach($_POST['hiddendrugname'] as $drug) {
+    $parts = explode("--", $drug);
+    // Remove empty elements
+    $parts = array_filter($parts, function ($value) {
+        return $value !== '';
+    });
+    // Re-index the array
+    $parts = array_values($parts);
+    // Combine elements into the desired format
+    if (count($parts) >= 3) {
+        $combined = "{$parts[0]} ({$parts[2]}) {$parts[1]}";
+        $hddn[] = $combined;
     }
-    $ky = 0; //foreach(${"chartvalqry".$w} as $vall){
-    foreach ($ {
-        "yrsar" . $w
-    } as $yr) {
-        $explodeyear = explode("-", $ {
-            "chartvalqry" . $w
+}
+
+$_POST['hiddendrugname'] = $hddn;
+// echo "<pre>";
+// print_r($hddn);
+// print_r($_POST);
+// print_r($_POST['Outsidehiddendrugtype']);
+// echo "</pre>";
+
+define("MAX_SIZE", "30000");
+function getExtension1($str)
+{
+    $i = strrpos($str, ".");
+    if (!$i) {
+        return "";
+    }
+    $l = strlen($str) - $i;
+    $ext = substr($str, $i + 1, $l);
+    return $ext;
+}
+
+$saveRdraft = $_POST['saveRdraft'];
+if ($saveRdraft == "Draft" || $saveRdraft == "AgainDraftPresc" || $saveRdraft == "DraftPrescs") {
+    $isdraft = "1";
+} else {
+    $isdraft = "0";
+}
+
+//$tbs_userid=$_SESSION['userid'];
+$userid = $tbs_userid;
+//current date
+$datetime = date("Y-m-d H:i:s");
+
+//
+$err = "";
+$errors = array();
+$error = 0;
+
+$id = $_POST['id'];
+$id = addslashes($id);
+
+$docname = $_POST['docname'];
+$docname = addslashes($docname);
+
+$presID = "";
+$speclisatinname = "";
+$count = 1;
+if (isset($_POST['speclisatinname'])) {
+    $countspecialization = sizeof($_POST['speclisatinname']);
+    foreach ($_POST['speclisatinname'] as $usedforoptions) {
+        $speclisatinname .= $usedforoptions;
+        $total = $count++;
+        if ($total <> $countspecialization) {
+            $speclisatinname .= ", ";
         }
-        [$ky]["month"]) [0];
-        $explodehrayear = explode("-", $yr) [0];
-        if ($explodehrayear == $explodeyear) {
-            //if($yr==${"chartvalqry".$w}[$ky]['month']){
-            $ {
-                "chartval" . $w
+    }
+}
+$hosname = $_POST['hosname'];
+$hosname = addslashes($hosname);
+
+$username = $_POST['username'];
+$username = addslashes($username);
+
+try {
+    $obj = new ManageUsers();
+    $caseId = intval($_GET['case']);
+    $query = "SELECT date(cf.cr_date) as created_case, concat(mud.first_name, ' ', mud.last_name) as fullname, cf.* 
+              FROM ohc cf 
+              LEFT OUTER JOIN master_user_details mud ON mud.id = cf.user_id 
+              WHERE cf.id = $caseId";
+    $UserDeta = $obj->listDirectQuery($query);
+    $obj = null;
+} catch (Exception $e) {
+    echo 'Error: ' . $e->getMessage();
+}
+$created_case = date("d/m/Y", strtotime($UserDeta[0]['created_case']));
+
+$fromdate = $_POST['fromdate'];
+$fromdate = convertDateFormat($fromdate, '/');
+
+$dnotes = $_POST['dnotes'];
+$dnotes = addslashes($dnotes);
+
+$mnotes = $_POST['mnotes'];
+$mnotes = addslashes($mnotes);
+
+$drugname = $_POST['drugname'];
+$outsideDrugname = $_POST['outsidedrugname'];
+
+$duration = $_POST['duration'];
+$outsideduration = $_POST['outsideduration'];
+$concat = $_POST['concat'];
+
+$early_morning = $_POST['early_morning'];
+$morning = $_POST['morning'];
+$Outsidemorning = $_POST['Outsidemorning'];
+$late_morning = $_POST['late_morning'];
+$afternoon = $_POST['afternoon'];
+$late_afternoon = $_POST['late_afternoon'];
+$evening = $_POST['evening'];
+$night = $_POST['night'];
+$late_night = $_POST['late_night'];
+$drugid = $_POST['drugtype'];
+
+$Outsideafternoon = $_POST['Outsideafternoon'];
+$Outsideevening = $_POST['Outsideevening'];
+$Outsidenight = $_POST['Outsidenight'];
+
+$drugtype = $_POST['hiddendrugtype'];
+$Outsidehiddendrugtype = $_POST['Outsidehiddendrugtype'];
+$hiddendrugname = $_POST['hiddendrugname'];
+$drugintakecondition = $_POST['drugintakecondition'];
+
+$remarks = $_POST['remarks'];
+
+$rowid = $_POST['rowid'];
+
+$testid = $_POST['testid'];
+
+$case_id = $_POST['case_id'];
+$textcond = $_POST['textcond'];
+$conditionname = $_POST['conditionname'];
+$hiddenconditionname = $_POST['hiddenconditionname'];
+//$hiddenconditionname = addslashes($hiddenconditionname);
+$newtemplate = $_POST['newtemplate'];
+$existtemplate = $_POST['existtemplate'];
+//$showcond=(!empty($_POST['showcond']))?'1':'2';
+$showcond = $_POST['showcond'];
+$role_id = $tbs_role;
+$created_by = $tbs_userid;
+$testids = $_POST['testids'];
+$ohcs = $_POST['ohcs'];
+$corp_id = $_POST['corp_id'];
+
+$conditionnameexist = new ManageUsers();
+$conditionnameexists = $conditionnameexist->listDirectQuery("SELECT count(*) as counthidden from `med_condition_map` where med_condition='" . $hiddenconditionname . "'");
+if ($conditionnameexists) {
+    foreach ($conditionnameexists as $conditionnameexistsL) {
+        $counthidden = $conditionnameexistsL['counthidden'];
+    }
+}
+
+//!empty($hiddenconditionname) && $counthidden=="0"
+
+if (!empty($conditionname)) {
+    $CurrentAppointMnt = new ManageMasters();
+    //$addInsertedID=$CurrentAppointMnt->addCondition($hiddenconditionname,$username,$tbs_role,$created_by);
+    //$addInsertedID=$CurrentAppointMnt->addCondition($conditionname,$username,$tbs_role,$created_by,$concat,$showcond);
+
+    $today = date('Y-m-d h:i:s');
+    foreach ($conditionname as $key => $cndsname) {
+        $conca = $concat[$key];
+
+        $shcnt = (!empty($showcond[$key])) ? '1' : '2';
+
+        $conditionnameexistss = $conditionnameexist->listDirectQuery("SELECT count(*) as counthidden from `med_condition_map` where med_condition='$cndsname' and user_id='$username' and (is_active='1' or is_active='2') ");
+
+        if ($conditionnameexistss[0]['counthidden'] == "0") {
+
+            $conditionnameexists = $CurrentAppointMnt->listDirectQuery("INSERT into med_condition_map(med_condition,user_id,is_active,created_role,created_id,created_on,cat_cond) VALUES('$cndsname','$username','$shcnt','$tbs_role','$created_by','$today','$conca')");
+        }
+    }
+    //	$conditionname=$addInsertedID;
+    $CurrentAppointMnt = null;
+}
+
+
+$fav_pharmacy = $_POST['fav_pharmacy'];
+$fav_lab = $_POST['fav_lab'];
+$favoritesCheckObj = new ManageUsers();
+$favoritesCheck = $favoritesCheckObj->listDirectQuery("SELECT count(*) as countfavorites from `favorites` WHERE reference_id='" . $fav_pharmacy . "' AND user_id='" . $tbs_userid . "' AND role_id='" . $tbs_role . "' AND status=1");
+$favoritesCheckObj = null;
+if ($favoritesCheck[0]['countfavorites'] == 0 && $fav_pharmacy != "") {
+    $favoritesAddCheckObj = new ManageUsers();
+    $favoritesAdd = $favoritesAddCheckObj->AddDirectQuery("INSERT INTO `favorites`(reference_id,user_id,role_id,status,created_on,created_role,created_by)	VALUES('" . $fav_pharmacy . "','" . $tbs_userid . "','" . $tbs_role . "','1','" . $datetime . "','" . $tbs_role . "','" . $tbs_userid . "')");
+    $favoritesAddCheckObj = null;
+} elseif ($favoritesCheck[0]['countfavorites'] > 0 && $fav_pharmacy != "") {
+    $favoritesUpdateCheckObj = new ManageUsers();
+    $favoritesUpdate = $favoritesUpdateCheckObj->listDirectQuery("UPDATE `favorites` SET modified_on='" . $datetime . "',modified_role='" . $tbs_role . "',modified_by='" . $tbs_userid . "' WHERE reference_id='" . $fav_pharmacy . "' AND user_id='" . $tbs_userid . "' AND role_id='" . $tbs_role . "' AND status=1");
+    $favoritesUpdateCheckObj = null;
+}
+
+$favoritesCheckObj = new ManageUsers();
+$favoritesCheck = $favoritesCheckObj->listDirectQuery("SELECT count(*) as countfavorites from `favorites` WHERE reference_id='" . $fav_lab . "' AND user_id='" . $tbs_userid . "' AND role_id='" . $tbs_role . "' AND status=2");
+$favoritesCheckObj = null;
+if ($favoritesCheck[0]['countfavorites'] == 0 && $fav_lab != "") {
+    $favoritesAddCheckObj = new ManageUsers();
+    $fav_labAdd = $favoritesAddCheckObj->AddDirectQuery("INSERT INTO `favorites`(reference_id,user_id,role_id,status,created_on,created_role,created_by)	VALUES('" . $fav_lab . "','" . $tbs_userid . "','" . $tbs_role . "','2','" . $datetime . "','" . $tbs_role . "','" . $tbs_userid . "')");
+    $favoritesAddCheckObj = null;
+} elseif ($favoritesCheck[0]['countfavorites'] > 0 && $fav_lab != "") {
+    $favoritesUpdateCheckObj = new ManageUsers();
+    $favoritesUpdate = $favoritesUpdateCheckObj->listDirectQuery("UPDATE `favorites` SET modified_on='" . $datetime . "',modified_role='" . $tbs_role . "',modified_by='" . $tbs_userid . "' WHERE reference_id='" . $fav_lab . "' AND user_id='" . $tbs_userid . "' AND role_id='" . $tbs_role . "' AND status=2");
+    $favoritesUpdateCheckObj = null;
+}
+
+if (isset($_POST['isconformo'])) {
+    if ($saveRdraft == "DraftPresc" || $saveRdraft == "AgainDraftPresc" || $saveRdraft == "DraftPrescs") {
+        $isconformo = 0;
+    } else {
+        $isconformo = 1;
+    }
+} else {
+    $isconformo = 0;
+}
+
+if (isset($_POST['isshowdoctor'])) {
+    $showdoctor = 1;
+} else {
+    $showdoctor = 0;
+}
+
+$sendMailPresToPatient = $_POST['sendMailPresToPatient'];
+
+$status = 1;
+$isprescribed = 1;
+$presDesc = $_POST['presDesc'];
+$prescriptionId = $_POST['prescriptionId'];
+$dnotes = addslashes($_POST['dnotes']);
+$mnotes = addslashes($_POST['mnotes']);
+
+if ($saveRdraft == "TemplateOnly" || $saveRdraft == "TemplateSave") {
+    if ($newtemplate == "") {
+        $templateid = $existtemplate;
+        $SearchTemplates = new ManageUsers();
+
+        $InsertTemplated = $SearchTemplates->listDirectQuery("SELECT * from template_detail where template_id=" . $templateid);
+        $SearchTemplates = null;
+        if ($InsertTemplated != 0) {
+            $tempdrugs = array();
+            foreach ($InsertTemplated as $InsertTemplatedLis) {
+                $tempdrug = $InsertTemplatedLis['drugs_name'];
+                array_push($tempdrugs, $InsertTemplatedLis['drugs_name']);
             }
-            [] = $ {
-                "chartvalqry" . $w
-            }
-            [$ky]["val"];
-            //${"chartmonth".$w}[]="'".date("M-Y",strtotime(${"chartvalqry".$w}[$ky]['month']))."'";
-            $ {
-                "prc" . $w
-            }
-            [] = round(($ {
-                "chartvalqry" . $w
-            }
-            [$ky]["val"] / $ {
-                "xcnts" . $w
-            }
-            [$ky]) * 100, 2);
-            foreach ($date_array as $end_datewise_single) {
-                $end_month = explode("/", $end_datewise_single);
-                $end_month_filter = $end_month[1] . "-" . $end_month[0];
-                $monthdate = date("M-y", strtotime($end_month_filter));
-                $ {
-                    "chartmonth" . $w
+            $q = 0;
+            foreach ($drugname as $drugvalue) {
+                $remarks[$q] = addslashes($remarks[$q]);
+                if ($drugvalue != "") {
+                    if (!in_array($drugvalue, $tempdrugs)) {
+                        $InsertTemplates1 = new ManageUsers();
+
+                        $drugsname_temp = $InsertTemplates1->listDirectQuery("select drug_name from pharmacy_stock_detail where id=" . $drugname[$q]);
+                        $dtemp = $drugsname_temp[0]['drug_name'];
+
+                        $InsertTemplate = $InsertTemplates1->listDirectQuery("INSERT into template_detail(template_id,drugs_name,prescribed_for_days,drugearlymorning,drugmorning,druglatemorning,drugafternoon,druglateafternoon,drugevening,drugnight,druglatenight,drugtype,drugintakecondition,remarks) values('$templateid',   '$dtemp','$duration[$q]','$early_morning[$q]','$morning[$q]','$late_morning[$q]','$afternoon[$q]','$late_afternoon[$q]','$evening[$q]', '$night[$q]','$late_night[$q]','$drugtype[$q]','$drugintakecondition[$q]','$remarks[$q]')");
+                        $InsertTemplates1 = null;
+                    } else {
+                        $InsertTemplates1 = new ManageUsers();
+
+                        $dtemp = $drugname[$q];
+                        // echo "delete DELETE FROM template_detail WHERE condition;
+
+                        $InsertTemplate = $InsertTemplates1->listDirectQuery("UPDATE template_detail SET prescribed_for_days='$duration[$q]',drugearlymorning='$early_morning[$q]',drugmorning='$morning[$q]',druglatemorning='$late_morning[$q]',drugafternoon='$afternoon[$q]',druglateafternoon='$late_afternoon[$q]',drugevening='$evening[$q]',drugnight='$night[$q]',druglatenight='$late_night[$q]',drugtype='$drugtype[$q]',drugintakecondition='$drugintakecondition[$q]',remarks='$remarks[$q]' WHERE drugs_name='$dtemp' AND template_id='$templateid'");
+                        $InsertTemplates1 = null;
+                    }
                 }
-                [] = '"' . $monthdate . '"';
+                $q = $q + 1;
+            }
+
+
+            foreach ($tempdrugs as $tempdrugsvalue) {
+                if (!in_array($tempdrugsvalue, $drugname)) {
+                    $InsertTemplates1 = new ManageUsers();
+                    $InsertTemplate = $InsertTemplates1->listDirectQuery("DELETE FROM template_detail where template_id=" . $templateid . " and drug_id=" . $tempdrugsvalue);
+                    $InsertTemplates1 = null;
+                }
+            }
+        }
+    } else {
+        $InsertTemplates = new ManageUsers();
+
+        $InsertTemplated = $InsertTemplates->AddDirectQuery("INSERT into template(user_id,template_name,created_on,ohc) values('$docname', '$newtemplate', '$datetime','$ohcs')");
+        $q = 0;
+        foreach ($drugname as $drugvalue) {
+            $remarks[$q] = addslashes($remarks[$q]);
+            $InsertTemplates1 = new ManageUsers();
+
+            $drugsname_temp = $InsertTemplates1->listDirectQuery("select drug_name from pharmacy_stock_detail where id =" . $drugname[$q]);
+            $dtemp = $drugsname_temp[0]['drug_name'];
+
+            $InsertTemplate = $InsertTemplates1->listDirectQuery("INSERT into template_detail(template_id,drugs_name,prescribed_for_days,drugearlymorning,drugmorning,druglatemorning,drugafternoon,druglateafternoon,drugevening,drugnight,druglatenight,drugtype,drugintakecondition,remarks) values('$InsertTemplated', '$dtemp', '$duration[$q]','$early_morning[$q]','$morning[$q]','$late_morning[$q]','$afternoon[$q]','$late_afternoon[$q]','$evening[$q]', '$night[$q]','$late_night[$q]','$drugtype[$q]','$drugintakecondition[$q]','$remarks[$q]')");
+            $InsertTemplates1 = null;
+            $q = $q + 1;
+            $InsertTemplates1 = "";
+        }
+        $templateid = $InsertTemplated;
+    }
+    $selectTemplatesNotesObj = new ManageUsers();
+    $selectTemplatesNotes = $selectTemplatesNotesObj->listDirectQuery("SELECT count(*) as counts FROM template_detail_notes WHERE template_id='$templateid'");
+    $selectTemplatesNotesObj = null;
+    if ($selectTemplatesNotes[0]["counts"] > 0) {
+
+        $updateTemplatesNotesObj = new ManageUsers();
+        $updateTemplatesNotes = $updateTemplatesNotesObj->listDirectQuery("UPDATE template_detail_notes SET patientnotes='$dnotes',doctornotes='$mnotes' WHERE template_id='$templateid'");
+        $updateTemplatesNotesObj = null;
+    } else {
+
+        $InsertTemplatesNotesObj = new ManageUsers();
+        $InsertTemplatesNotes = $InsertTemplatesNotesObj->listDirectQuery("INSERT into template_detail_notes(template_id,patientnotes,doctornotes) values('$templateid', '$dnotes', '$mnotes')");
+        $InsertTemplatesNotesObj = null;
+    }
+}
+
+
+if ($saveRdraft != "TemplateOnly" && $username != "") {
+    if ($saveRdraft == "DraftPresc" || $saveRdraft == "DraftPrescs" || $saveRdraft == "CopyPresc" || $saveRdraft == "AgainDraftPresc" || $saveRdraft == "AgainDraftSavePresc") {
+        $UpdatePrescription = new ManageUsers();
+        $UpdatePresID = $UpdatePrescription->listDirectQuery("UPDATE prescription SET doctor_id='$docname',master_specialization_id='$speclisatinname',master_hcsp_user_id='$hosname',user_id='$username',doctornotes='$dnotes',usernotes='$mnotes',sharewithdoctor='$showdoctor',isdraft='$isdraft',modifiedon='$datetime',is_conformance='$isconformo',from_date='$fromdate',conditionname='$conditionname',fav_pharmacy='$fav_pharmacy',fav_lab='$fav_lab',condition_cat='$concat',corp_id='$corp_id',ohc='$ohcs' where id='$prescriptionId'");
+        $q = 0;
+        if (!empty($drugname)) {
+            print_r($drugname); exit;
+            foreach ($drugname as $val) {
+
+                $Prescription = new ManageUsers();
+
+                $remarks[$q] = addslashes($remarks[$q]);
+
+                if ($presDesc[$q] == "") {
+
+                    $prescription_detailid = $Prescription->addohPrescriptionDetails($prescriptionId, $drugname[$q], $duration[$q], $early_morning[$q], $morning[$q], $late_morning[$q], $afternoon[$q], $late_afternoon[$q], $evening[$q], $night[$q], $late_night[$q], $drugtype[$q], $drugintakecondition[$q], $remarks[$q]);
+                    echo $prescription_detailid;
+                } else {
+                    $tablename = "prescription_detail";
+                    $PrescriptionDe = new ManageUsers();
+                    $PrescriptionDeta = $PrescriptionDe->listDirectQuery("UPDATE prescription_detail SET  prescription_id='$prescriptionId',drugs_name='$drugname[$q]',prescribed_for_days='$duration[$q]',drugearlymorning='$early_morning[$q]',drugmorning='$morning[$q]',druglatemorning='$late_morning[$q]',drugafternoon='$afternoon[$q]',druglateafternoon='$late_afternoon[$q]',drugevening='$evening[$q]',drugnight='$night[$q]',druglatenight='$late_night[$q]',drugtype='$drugtype[$q]',drugintakecondition='$drugintakecondition[$q]',remarks='$remarks[$q]' where id='$presDesc[$q]'");
+                    $prescription_detailid = $presDesc[$q];
+                    $PrescriptionDe = null;
+                }
+                if ($isconformo == 1 && $saveRdraft == "AgainDraftSavePresc") {
+                    for ($i = 1; $i <= $duration[$q]; $i++) {
+                        $dates = new ManageMasters();
+                        $j = $i - 1;
+                        $nextdate = $dates->nextdate($fromdate, $j);
+                        foreach ($nextdate as $newnextdate) {
+                            $Prescriptionsv = new ManageUsers();
+                            $zerovalue = '';
+                            $datetime = date("Y-m-d H:i:s");
+                            if ($drugtype[$q] == "177") {
+                            } else {
+                                $remarks[$q] = addslashes($remarks[$q]);
+                                $prescriptionDetailId = $prescription_detailid;
+                                $confirmance = $Prescriptionsv->addConfirmanceDetail($prescriptionDetailId, $prescriptionId, $drugname[$q], $zerovalue, $zerovalue, $zerovalue, $drugtype[$q], $drugintakecondition[$q], $remarks[$q], $newnextdate['CheckDate'], $datetime, $tbs_userid, $tbs_role);
+                            }
+                        }
+                    }
+                }
+                $q = $q + 1;
+            }
+        }
+
+
+        if (sizeof($testids) > 0) {
+            //Array seperation (Important Notice:*Dont Delete Comma)
+            $testIdDepartments = "," . (implode(",", $testids));
+            $testFilter = preg_replace("/(,s1g[0-9]+)|(,s2g[0-9]+)/", '', $testIdDepartments);
+            $testFilter = substr($testFilter, 1, strlen($testFilter));
+            $testLists = explode(",", $testFilter);
+
+            $subGroupFilter = preg_replace("/(,[0-9]+)|(,s2g[0-9]+)/", '', $testIdDepartments);
+            $subGroupFilter = substr($subGroupFilter, 1, strlen($subGroupFilter));
+            $subGroupFilter = str_replace("s1g", "", $subGroupFilter);
+            $subGroupLists = explode(",", $subGroupFilter);
+
+            $subSubGroupFilter = preg_replace("/(,[0-9]+)|(,s1g[0-9]+)/", '', $testIdDepartments);
+            $subSubGroupFilter = substr($subSubGroupFilter, 1, strlen($subSubGroupFilter));
+            $subSubGroupFilter = str_replace("s2g", "", $subSubGroupFilter);
+            $subSubGroupLists = explode(",", $subSubGroupFilter);
+
+
+            $PrescriptionTest = new ManageUsers();
+            $sql = "DELETE FROM `prescribed_tests` WHERE prescription_id='$prescriptionId' AND ((ifnull(subgroup,0)=0 AND ifnull(subsubgroup,0)=0 AND test_id NOT IN (" . ($testFilter == '' ? 0 : $testFilter) . ")) OR (ifnull(subgroup,0)>0 AND ifnull(subsubgroup,0)=0 AND subgroup NOT IN (" . ($subGroupFilter == '' ? 0 : $subGroupFilter) . ")) OR (ifnull(subgroup,0)=0 AND ifnull(subsubgroup,0)>0 AND subsubgroup NOT IN (" . ($subSubGroupFilter == '' ? 0 : $subSubGroupFilter) . ")))";
+            $deleteTestIdQuery = $PrescriptionTest->listDirectQuery($sql);
+            $PrescriptionTest = null;
+
+            $PrescriptionTestsMax = new ManageUsers();
+            $MaxTestCodes = $PrescriptionTestsMax->listDirectQuery("SELECT ifnull(max(test_code),0) as maxid FROM `prescribed_tests`");
+            $PrescriptionTestsMax = null;
+            if ($MaxTestCodes != 0) {
+                foreach ($MaxTestCodes as $MaxTestCodesL) {
+                    $maxid = $MaxTestCodesL['maxid'] + 1;
+                }
+            }
+
+            //Add Tests
+            if (count($testLists) > 0) {
+
+                $prescriptionTestObj = new ManageUsers();
+                $addlabreq = $prescriptionTestObj->AddDirectQuery("INSERT INTO lab_request_status (`r_lab_id`,`r_test_code`, `user_id`, `hp_id`, `generate_test_request_id`, `visit_status`, `status`, `status_date`, `created_on`, `created_role`, `created_by`) values ('$fav_lab','$maxid','$username','$subgroup','$generateTestRequestId','1','1',now(),'$datetime','$tbs_role','$tbs_userid')");
+                $prescriptionTestObj = null;
+                foreach ($testLists as $testList) {
+                    $PrescriptionTestObj = new ManageUsers();
+                    $insertExceptOldDatas = $PrescriptionTestObj->listDirectQuery("SELECT COUNT(id) as count FROM `prescribed_tests` WHERE prescription_id='$prescriptionId' and test_id='" . $testList . "'");
+                    $PrescriptionTestObj = null;
+                    if ($insertExceptOldDatas[0]['count'] == 0 && $testList <> "") {
+                        $prescriptionTestObj = new ManageUsers();
+                        $addPrescriptionTestObj = $prescriptionTestObj->AddDirectQuery("INSERT INTO `prescribed_tests`(prescription_id,test_code,test_date,test_id,subgroup,subsubgroup,user_id,doctor_id,fav_lab,lab_id,created_on,created_by,created_role,test_type,textcond) VALUES('$prescriptionId','$maxid','$fromdate','$testList','0','0','$username','$docname','$fav_lab','$fav_lab','$datetime','$tbs_userid','$tbs_role','0','$textcond')");
+                        $prescriptionTestObj = null;
+                    }
+                }
+            }
+
+            //Add Sub Group
+            if (count($subGroupLists) > 0) {
+
+                foreach ($subGroupLists as $subGroupList) {
+                    $PrescriptionTestObj = new ManageUsers();
+                    $insertExceptOldDatas = $PrescriptionTestObj->listDirectQuery("SELECT COUNT(id) as count FROM `prescribed_tests` WHERE prescription_id='$prescriptionId' and subgroup='" . $subGroupList . "'");
+                    $PrescriptionTestObj = null;
+                    if ($insertExceptOldDatas[0]['count'] == 0) {
+                        $prescriptionTestObj = new ManageUsers();
+                        $addPrescriptionTestObj = $prescriptionTestObj->AddDirectQuery("INSERT INTO `prescribed_tests`(prescription_id,test_code,test_date,test_id,subgroup,subsubgroup,user_id,doctor_id,fav_lab,lab_id,created_on,created_by,created_role,test_type)
+						SELECT '" . $prescriptionId . "','" . $maxid . "','" . $fromdate . "',mt.id,mt.subgroup,ifnull(mt.subsubgroup,0),'" . $username . "','" . $docname . "','" . $fav_lab . "','" . $fav_lab . "','" . $datetime . "','" . $tbs_userid . "','" . $tbs_role . "','0'
+						FROM `master_test` mt
+						WHERE mt.subgroup='" . $subGroupList . "'");
+                        $prescriptionTestObj = null;
+                    }
+                }
+            }
+
+            //Add Sub Sub Group
+            if (count($subGroupLists) > 0) {
+
+                foreach ($subSubGroupLists as $subSubGroupList) {
+                    $PrescriptionTestObj = new ManageUsers();
+                    $insertExceptOldDatas = $PrescriptionTestObj->listDirectQuery("SELECT COUNT(id) as count FROM `prescribed_tests` WHERE prescription_id='$prescriptionId' and subsubgroup='" . $subSubGroupList . "'");
+                    $PrescriptionTestObj = null;
+                    if ($insertExceptOldDatas[0]['count'] == 0) {
+                        $prescriptionTestObj = new ManageUsers();
+                        $addPrescriptionTestObj = $prescriptionTestObj->AddDirectQuery("INSERT INTO `prescribed_tests`(prescription_id,test_code,test_date,test_id,subgroup,subsubgroup,user_id,doctor_id,fav_lab,lab_id,created_on,created_by,created_role,test_type)
+						SELECT '" . $prescriptionId . "','" . $maxid . "','" . $fromdate . "',mt.id,0,mt.subsubgroup,'" . $username . "','" . $docname . "','" . $fav_lab . "','" . $fav_lab . "','" . $datetime . "','" . $tbs_userid . "','" . $tbs_role . "','0'
+						FROM `master_test` mt
+						WHERE mt.subsubgroup='" . $subSubGroupList . "'");
+                        $prescriptionTestObj = null;
+                    }
+                }
+            }
+        }
+    } else {
+
+        $q = 0;
+        $PrescriptionTests = new ManageUsers();
+        $Prescription = new ManageUsers();
+        $created_on = date("Y-m-d H:i:s");
+        for ($n = 0; $q < count($hiddendrugname); $n++) {
+            if (!empty($hiddendrugname[$n])) {
+                $SqlPresID = $Prescription->addPrescriptionMain($username, $docname, $fromdate, $speclisatinname, $hosname, $dnotes, $mnotes, $isconformo, $showdoctor, $status, $isprescribed, $case_id, $isdraft, $conditionname, $templateid, $role_id, $created_on, $created_by, $tbs_role, $concat, $ohcs, $corp_id);
+
+                $presID = $SqlPresID;
+                $fromdateCombined = explode("-", $fromdate);
+                $fromdateCombined = $fromdateCombined[2] . $fromdateCombined[1] . $fromdateCombined[0];
+
+
+                $prescriptionIdCombined = $tbs_login . "/" . $fromdateCombined . "/000" . $presID;
+                $dateTime = date("Y-m-d H:i:s");
+                $addPrescriptionIdObj = new ManageUsers();
+                $addPrescriptionId = $addPrescriptionIdObj->listDirectQuery("UPDATE prescription SET prescription_id='$prescriptionIdCombined',fav_pharmacy='$fav_pharmacy',fav_lab='$fav_lab' where id='$presID'");
+                $addPrescriptionIdObj = null;
+                break;
+            }
+        }
+
+        if (sizeof($testids) > 0) {
+            //Array seperation (Important Notice:*Dont Delete Comma)
+            $testIdDepartments = "," . (implode(",", $testids));
+            $testFilter = preg_replace("/(,s1g[0-9]+)|(,s2g[0-9]+)/", '', $testIdDepartments);
+            $testFilter = substr($testFilter, 1, strlen($testFilter));
+            $testLists = explode(",", $testFilter);
+
+            $subGroupFilter = preg_replace("/(,[0-9]+)|(,s2g[0-9]+)/", '', $testIdDepartments);
+            $subGroupFilter = substr($subGroupFilter, 1, strlen($subGroupFilter));
+            $subGroupFilter = str_replace("s1g", "", $subGroupFilter);
+            $subGroupLists = explode(",", $subGroupFilter);
+
+            $subSubGroupFilter = preg_replace("/(,[0-9]+)|(,s1g[0-9]+)/", '', $testIdDepartments);
+            $subSubGroupFilter = substr($subSubGroupFilter, 1, strlen($subSubGroupFilter));
+            $subSubGroupFilter = str_replace("s2g", "", $subSubGroupFilter);
+            $subSubGroupLists = explode(",", $subSubGroupFilter);
+
+
+            $PrescriptionTest = new ManageUsers();
+            $sql = "DELETE FROM `prescribed_tests` WHERE prescription_id='$SqlPresID' AND ((ifnull(subgroup,0)=0 AND ifnull(subsubgroup,0)=0 AND test_id NOT IN (" . ($testFilter == '' ? 0 : $testFilter) . ")) OR (ifnull(subgroup,0)>0 AND ifnull(subsubgroup,0)=0 AND subgroup NOT IN (" . ($subGroupFilter == '' ? 0 : $subGroupFilter) . ")) OR (ifnull(subgroup,0)=0 AND ifnull(subsubgroup,0)>0 AND subsubgroup NOT IN (" . ($subSubGroupFilter == '' ? 0 : $subSubGroupFilter) . ")))";
+            $deleteTestIdQuery = $PrescriptionTest->listDirectQuery($sql);
+            $PrescriptionTest = null;
+
+            $PrescriptionTestsMax = new ManageUsers();
+            $MaxTestCodes = $PrescriptionTestsMax->listDirectQuery("SELECT ifnull(max(test_code),0) as maxid FROM `prescribed_tests`");
+            $PrescriptionTestsMax = null;
+            if ($MaxTestCodes != 0) {
+                foreach ($MaxTestCodes as $MaxTestCodesL) {
+                    $maxid = $MaxTestCodesL['maxid'] + 1;
+                }
+            }
+
+            //Add Tests
+            if (count($testLists) > 0) {
+                $prescriptionTestObj = new ManageUsers();
+                $addlabreq = $prescriptionTestObj->AddDirectQuery("INSERT INTO lab_request_status (`r_lab_id`,`r_test_code`, `user_id`, `hp_id`, `generate_test_request_id`, `visit_status`, `status`, `status_date`, `created_on`, `created_role`, `created_by`) values ('$fav_lab','$maxid','$username','$subgroup','$generateTestRequestId','1','1',now(),'$datetime','$tbs_role','$tbs_userid')");
+                $prescriptionTestObj = null;
+                foreach ($testLists as $testList) {
+                    $PrescriptionTestObj = new ManageUsers();
+                    $insertExceptOldDatas = $PrescriptionTestObj->listDirectQuery("SELECT COUNT(id) as count FROM `prescribed_tests` WHERE prescription_id='$SqlPresID' and test_id='" . $testList . "'");
+                    $PrescriptionTestObj = null;
+                    if ($insertExceptOldDatas[0]['count'] == 0 && $testList <> "") {
+                        $prescriptionTestObj = new ManageUsers();
+                        $addPrescriptionTestObj = $prescriptionTestObj->AddDirectQuery("INSERT INTO `prescribed_tests`(prescription_id,test_code,test_date,test_id,subgroup,subsubgroup,user_id,doctor_id,fav_lab,lab_id,created_on,created_by,created_role,test_type,textcond) VALUES('$SqlPresID','$maxid','$fromdate','$testList','0','0','$username','$docname','$fav_lab','$fav_lab','$datetime','$tbs_userid','$tbs_role','0','$textcond')");
+                        $prescriptionTestObj = null;
+                    }
+                }
+            }
+
+            //Add Sub Group
+            if (count($subGroupLists) > 0) {
+                foreach ($subGroupLists as $subGroupList) {
+                    $PrescriptionTestObj = new ManageUsers();
+                    $insertExceptOldDatas = $PrescriptionTestObj->listDirectQuery("SELECT COUNT(id) as count FROM `prescribed_tests` WHERE prescription_id='$SqlPresID' and subgroup='" . $subGroupList . "'");
+                    $PrescriptionTestObj = null;
+                    if ($insertExceptOldDatas[0]['count'] == 0) {
+                        $prescriptionTestObj = new ManageUsers();
+                        $addPrescriptionTestObj = $prescriptionTestObj->AddDirectQuery("INSERT INTO `prescribed_tests`(prescription_id,test_code,test_date,test_id,subgroup,subsubgroup,user_id,doctor_id,fav_lab,lab_id,created_on,created_by,created_role,test_type)
+						SELECT '" . $SqlPresID . "','" . $maxid . "','" . $fromdate . "',mt.id,mt.subgroup,ifnull(mt.subsubgroup,0),'" . $username . "','" . $docname . "','" . $fav_lab . "','" . $fav_lab . "','" . $datetime . "','" . $tbs_userid . "','" . $tbs_role . "','0'
+						FROM `master_test` mt
+						WHERE mt.subgroup='" . $subGroupList . "'");
+                        $prescriptionTestObj = null;
+                    }
+                }
+            }
+
+            //Add Sub Sub Group
+            if (count($subGroupLists) > 0) {
+                foreach ($subSubGroupLists as $subSubGroupList) {
+                    $PrescriptionTestObj = new ManageUsers();
+                    $insertExceptOldDatas = $PrescriptionTestObj->listDirectQuery("SELECT COUNT(id) as count FROM `prescribed_tests` WHERE prescription_id='$SqlPresID' and subsubgroup='" . $subSubGroupList . "'");
+                    $PrescriptionTestObj = null;
+                    if ($insertExceptOldDatas[0]['count'] == 0) {
+                        $prescriptionTestObj = new ManageUsers();
+                        $addPrescriptionTestObj = $prescriptionTestObj->AddDirectQuery("INSERT INTO `prescribed_tests`(prescription_id,test_code,test_date,test_id,subgroup,subsubgroup,user_id,doctor_id,fav_lab,lab_id,created_on,created_by,created_role,test_type)
+						SELECT '" . $SqlPresID . "','" . $maxid . "','" . $fromdate . "',mt.id,0,mt.subsubgroup,'" . $username . "','" . $docname . "','" . $fav_lab . "','" . $fav_lab . "','" . $datetime . "','" . $tbs_userid . "','" . $tbs_role . "','0'
+						FROM `master_test` mt
+						WHERE mt.subsubgroup='" . $subSubGroupList . "'");
+                        $prescriptionTestObj = null;
+                    }
+                }
+            }
+        }
+
+
+        // Upload Image - Attachment
+        $uploadFileIds = $_POST['uploadFileId'];
+        $x = 0;
+        foreach ($uploadFileIds as $uploadFileId) {
+            $x = $x + 1;
+            if ($uploadFileId <> "") {
+                $uploadFileName = explode("___", $uploadFileId);
+                $image_name = $SqlPresID . '00' . $x . $uploadFileName[1];
+                $copied = copy($uploadFileId, 'img/prescription_attachment/' . $image_name);
+                if ($copied) {
+                    unlink($uploadFileId);
+                    $attachedpresc = new ManageUsers();
+                    $attachedprescs = $attachedpresc->listDirectQuery("INSERT INTO attachment_prescription(prescription_id,image_name,doctype) values('$SqlPresID', '$image_name', '1')");
+                    $attachedpresc = "";
+                }
+            }
+        }
+
+        $tablename = "prescription";
+
+        $Prescriptions = new ManageUsers();
+        print_r($drugname);
+        foreach ($drugname as $val) {
+            $remarks[$q] = addslashes($remarks[$q]);
+            if (!empty($hiddendrugname[$q])) {
+
+                $rowval = $rowid[$q];
+                if ($rowval == 0) {
+
+                    if ($val <> "") { 
+
+                        $drugnames = $Prescriptions->listDirectQuery("SELECT * FROM  `pharmacy_stock_detail` WHERE  `id`='" . $drugname[$q] . "'  or `drug_name`='" . $drugname[$q] . "'");
+                        $drugnamevalue = $drugnames[0]['drug_name'];
+                        $drugtypevalue = $drugtype[$q];
+                        $type = 1;
+                    } else {
+                        $m = 0;
+                        $drugnamevalue = $hiddendrugname[$q];
+                        //echo "SELECT `doctype` FROM  `doctype_static` WHERE  `id`='".$drugid[$m]."'";
+                        $drugtypes = $Prescriptions->listDirectQuery("SELECT `doctype` FROM  `doctype_static` WHERE  `id`='" . $drugid[$m] . "'  ");
+                        //echo $drugtypes[0]['doctype'];
+                        $drugtypevalue = $drugtypes[0]['doctype'];
+                        $type = 1;
+                        $m++;
+                    }
+                    $input = $_POST['hiddendrugname'][$q];
+                    $firstPart = substr($input, 0, strpos($input, '('));
+                    $sql = "SELECT id FROM drug_template WHERE drug_name='" . $firstPart . "'";
+                    $sql = $Prescriptions->listDirectQuery($sql);
+                    $templateId = $sql[0]['id'];
+                    $prescriptionDetailId = $Prescriptions->addohPrescriptionDetails($SqlPresID, $drugnamevalue, $duration[$q], $early_morning[$q], $morning[$q], $late_morning[$q], $afternoon[$q], $late_afternoon[$q], $evening[$q], $night[$q], $late_night[$q], $_POST['hiddendrugtype'][$q], $drugintakecondition[$q], $remarks[$q], $type, $templateId);
+                    unset($drugnamevalue);
+                    unset($drugtypevalue);
+
+
+                    //Notification
+                    if ($isconformo == 1 && $saveRdraft != "Draft") {
+                        for ($i = 1; $i <= $duration[$q]; $i++) {
+                            $dates = new ManageMasters();
+                            $j = $i - 1;
+                            $nextdate = $dates->nextdate($fromdate, $j);
+                            foreach ($nextdate as $newnextdate) {
+                                $Prescription = new ManageUsers();
+                                $zerovalue = '';
+                                $datetime = date("Y-m-d H:i:s");
+                                $confirmance = $Prescription->addConfirmanceDetail($prescriptionDetailId, $SqlPresID, $drugname[$q], $zerovalue, $zerovalue, $zerovalue, $drugtype[$q], $drugintakecondition[$q], $remarks[$q], $newnextdate['CheckDate'], $datetime, $tbs_userid, $tbs_role);
+                            }
+                        }
+                    }
+                } else {
+                    $tablename = "prescription_detail";
+                    $param = array('drugs_name' => $drugname[$q], 'prescribed_for_days' => $duration[$q], 'drugearlymorning' => $early_morning[$q], 'drugmorning' => $morning[$q], 'druglatemorning' => $late_morning[$q], 'drugafternoon' => $afternoon[$q], 'druglateafternoon' => $late_afternoon[$q], 'drugevening' => $evening[$q], 'drugnight' => $night[$q], 'druglatenight' => $late_night[$q], 'drugtype' => $drugtype[$q], 'drugintakecondition' => $drugintakecondition[$q], 'remarks' => $remarks[$q]);
+                    $resultPrescription = $Prescription->editDetails($tablename, $rowval, $param);
+                }
+            }
+            $q = $q + 1;
+        }
+
+        $sql = "SELECT id, doctype FROM doctype_static WHERE 1=1 AND doctypename_static_id='3'";
+        $result = new ManageUsers();
+        $result = $result->listDirectQuery($sql);
+        $mapping = array();
+        foreach ($result as $row) {
+            $mapping[$row['id']] = $row['doctype'];
+        }
+       
+        if ($_POST['outsidedrugname'][0] != null){
+            echo "<pre>";
+            print_r($_POST['Outsidehiddendrugtype']);
+            echo "</pre>";
+            echo "Now null, drug present";
+            $replacedValues = array();
+            foreach ($_POST['Outsidehiddendrugtype'] as $value) {
+                if (isset($mapping[$value])) {
+                    $replacedValues[] = $mapping[$value];
+                } else {
+                    $replacedValues[] = $value;
+                }
+            }
+            echo "<pre>";
+            print_r($replacedValues);
+            echo "</pre>";
+            $_POST['Outsidehiddendrugtype'] = $replacedValues;
+            $q = 0;
+            foreach ($outsideDrugname as $val) {
+                $prescriptionDetailId = $Prescriptions->addohPrescriptionDetails($SqlPresID, $val, $outsideduration[$q], $early_morning[$q], $Outsidemorning[$q], $late_morning[$q], $Outsideafternoon[$q], $late_afternoon[$q], $Outsideevening[$q], $Outsidenight[$q], $late_night[$q], $_POST['Outsidehiddendrugtype'][$q], $_POST['Outsidedrugintakecondition'][$q], $remarks[$q], 2);
+                $q = $q + 1;
+            }
+        } 
+    }
+    //Send Mail the Prescription
+    if ($sendMailPresToPatient == "1" && $isdraft == "0") {
+        include_once('sendmail/conform_registration.php');
+
+        //User Detail
+        $activateTheDoctorSel = new ManageUsers();
+        $activateTheDoctorDetail = $activateTheDoctorSel->getUserBasicDetail($username, "1");
+        $activateTheDoctorSel = null;
+        $toUserPrintMail = $activateTheDoctorDetail[0]["email"];
+        $nameUserPrintMail = $activateTheDoctorDetail[0]["first_name"] . " " . $activateTheDoctorDetail[0]["last_name"];
+
+
+        //Doctor Detail
+        $activateTheDoctorSel = new ManageUsers();
+        $activateTheDoctorDetail = $activateTheDoctorSel->listDirectQuery("select * from master_corporate_user where id=" . $_SESSION['userid']);
+        $activateTheDoctorSel = null;
+        $toDoctorPrintMail = $activateTheDoctorDetail[0]["email"];
+        $nameDoctorPrintMail = $activateTheDoctorDetail[0]["first_name"] . " " . $activateTheDoctorDetail[0]["last_name"];
+
+        //Hosp Detail
+        $activateTheHospSel = new ManageUsers();
+
+        $nameHospPrintMail = $activateTheHospSel->listDirectQuery("select * from master_corporate where id=" . $_SESSION['ohc_loca']);
+
+        $mailcontent = '<table width="650" cellspacing="0" cellpadding="0" border="0" align="center" style="border:solid 1px #dbdbd9;font-family:georgia;">
+					<tbody>
+					<tr>
+						<td height="35" bgcolor="#199bbf" style="padding:5px;">
+							<table width="100%" cellspacing="0" cellpadding="5" border="0" align="center">
+								<tbody>
+									<tr><td style="color:#FFFFFF; font-size:15px;">Dear ' . $nameUserPrintMail . ',<br/>Dr. ' . $nameDoctorPrintMail . ' has prescribed the below medicine(s) as per prescription ID:' . $prescriptionIdCombined . '</td></tr> 
+								</tbody>
+							</table>
+						</td>
+					</tr>';
+        $hiddendrugnamePrint = $_POST['hiddendrugname'];
+        $qCount = 0;
+        $mailcontent .= '<tr><td>';
+        $drugcontent = '<table width="100%" cellspacing="0" cellpadding="5" border="0" align="center">
+						<tr><th align="left">Drug Name</th><th>Days</th><th>Morning</th><th>Noon</th><th>Evening</th><th>Night</th><th style="width:150px;">Remarks</th></tr>';
+        foreach ($drugname as $val) {
+            $remarks[$qCount] = addslashes($remarks[$qCount]);
+            if ($val <> "") {
+                $rowval = $rowid[$qCount];
+                $drugcontent .= '<tr><td>' . $hiddendrugnamePrint[$qCount] . '</td><td align="center">' . $duration[$qCount] . '</td><td align="center">' . $morning[$qCount] . '</td><td align="center">' . $afternoon[$qCount] . '</td><td align="center">' . $evening[$qCount] . '</td><td align="center">' . $night[$qCount] . '</td><td style="text-align:center;">' . $remarks[$qCount] . '</td></tr> ';
+            }
+            $qCount = $qCount + 1;
+        }
+        $drugcontent .= '</table>';
+        $mailcontent .= $drugcontent;
+        $mailcontent .= '</tr></td>';
+        $mailcontent .= '<tr>
+						<td>
+							<table width="100%" cellspacing="0" cellpadding="5" border="0" align="center">
+								<tbody>
+										<tr><td colspan="2">
+											<div><b>
+												' . $nameHospPrintMail[0]['corporate_name'] . ' - ' . $nameHospPrintMail[0]['displayname'] . '</b>
+											</div>
+											<div>
+												<br/><b>Regards, <br>The myHealthvalet team</b><br/>
+												<div style="font-size:12px;">* Note: This is for your reference only and may not be considered as the original prescription. Kindly obtain the original prescription from your doctor.<br/>
+												
+												</div>
+												
+											</div>
+										</td></tr>
+								</tbody>
+							</table>
+						</td>
+					</tr>
+					<tr>
+						<td height="35" bgcolor="#199bbf" style="padding:5px;">
+							<table width="100%" cellspacing="0" cellpadding="0" border="0" align="center">
+								<tbody>
+									<tr><td style="color:#FFFFFF; font-size:15px;">Visit myhealthvalet.in for more details or look up the blog  <a href="http://www.hygeiaes.com/blog/" target="_blank"><u>http://www.hygeiaes.com/blog/</u></a> </td></tr>
+								</tbody>
+							</table>
+						</td>
+					</tr>		
+			</table>';
+
+        $mailsend = sendmail('myHealthvalet - Prescription from Dr ' . $nameDoctorPrintMail, $toUserPrintMail, $mailcontent, $toDoctorPrintMail);
+    }
+}
+if (isset($_POST['id']) && ($_POST['id'] != '0')) {
+    $SqlPresID = $_POST['id'];
+} else {
+    $SqlPresID = $presID;
+}
+$count1 = 0;
+if (isset($customTest)) {
+    foreach ($customTest as $key) {
+        if ($key == "") {
+            $count1++;
+        }
+    }
+}
+
+// Add other test
+$insertedTest = $tbs_userid . "/" . $tbs_role;
+$customTest = $_POST['custom_test'];
+
+if ($customTest <> "") {
+    $addOtherTestObj = new ManageMasters();
+    $addOtherTests = $addOtherTestObj->addOtherTest($insertedTest, $customTest);
+    $addOtherTestObj = null;
+    $customTest = $addOtherTests;
+}
+
+if (isset($customTest) && $count1 != '5') {
+
+    if ($maxid == "") {
+        $maxid = 0;
+    }
+    if (intVal($maxid) > 0) {
+        $maxid1 = $maxid;
+    } else {
+        $PrescriptionTestsMax = new ManageUsers();
+        $MaxTestCodes = $PrescriptionTestsMax->listDirectQuery("select ifnull(max(test_code),0) as maxid from prescribed_tests");
+        if ($MaxTestCodes) {
+            foreach ($MaxTestCodes as $MaxTestCodesL) {
+                $maxid1 = $MaxTestCodesL['maxid'] + 1;
+            }
+        }
+    }
+    $PrescriptionTest = new ManageUsers();
+
+
+    $custom_test = $customTest;
+    foreach ($custom_test as $PresTestVal) {
+
+        $checkTestId = $PrescriptionTest->listDirectQuery("select * from prescribed_tests where prescription_id='$SqlPresID' and test_id='$PresTestVal'");
+
+        if ($checkTestId == 0) {
+            $dateonly = date("Y-m-d");
+            if ($PresTestVal != "") {
+                $resultPrescriptionTests = $PrescriptionTest->AddDirectQuery("INSERT INTO prescribed_tests(prescription_id,test_code,test_date,test_id,user_id,doctor_id,fav_lab,lab_id,created_on,created_by,created_role,test_type) values ('$SqlPresID','$maxid1','$fromdate', '$PresTestVal', '$username', '$docname', '$fav_lab', '$fav_lab', '$datetime', '$tbs_userid', '$tbs_role','0')");
             }
         } else {
-            $ {
-                "chartval" . $w
-            }
-            [] = 0;
-            $ {
-                "prc" . $w
-            }
-            [] = 0;
-            //${"chartmonth".$w}[]="'".date("M-Y",strtotime($yr))."'";
-            foreach ($date_array as $end_datewise_single) {
-                $end_month = explode("/", $end_datewise_single);
-                $end_month_filter = $end_month[1] . "-" . $end_month[0];
-                $monthdate = date("M-y", strtotime($end_month_filter));
-                $ {
-                    "chartmonth" . $w
-                }
-                [] = '"' . $monthdate . '"';
-            }
+            $deleteTestId = $PrescriptionTest->listDirectQuery("delete  from prescribed_tests where prescription_id='$SqlPresID' and test_id='$PresTestVal'");
         }
-        $ky++;
     }
-    $w++;
-}
-$dataobj = new ManageMessage();
-$result = "SELECT * FROM `master_test` WHERE id IN ($real_parameters)";
-$result = $dataobj->listDirectQuery($result);
-$gender = $dataobj->listDirectQuery("SELECT gender FROM master_user_details WHERE id='" . $_SESSION["userid"] . "'");
-$gender = $gender[0]["gender"];
-?>
-
-<style>
-.container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-    padding: 20px;
 }
 
-.chart {
-    flex: 1 1 100%;
-    max-width: 600px;
+
+
+//Add Points
+if ($tbs_role == "1") {
+    include_once("get_points.php");
+    $points = $prescriptionU;
+    $types = 1;
+    $description = "Prescription";
+    $point_userid = $tbs_userid;
+    include_once("points_save.php");
 }
 
-.test-results {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
+if ($tbs_role == "2") {
+    include_once("get_points.php");
+    $points = $prescriptionU;
+    $types = 1;
+    $description = "Prescription";
+    $point_userid = $tbs_userid;
+    include_once("points_save.php");
 }
 
-.result-table {
-    border-collapse: collapse;
-    margin-bottom: 20px;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+if ($tbs_role == "3") {
+    include_once("get_points.php");
+    $points = $prescriptionU;
+    $types = 1;
+    $description = "Prescription";
+    $point_userid = $sessionlocation_id;
+    include_once("points_save.php");
 }
-
-.result-table th, .result-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
+//To add notification in settingsworkur.php
+if (isset($_SESSION['morningtime'])) {
+    unset($_SESSION['morningtime']);
 }
-
-.result-table thead th {
-    background-color: #<?php echo $_SESSION["tclr"]; ?>;
-    color: white;
-}
-
-.result-table .header-row th {
-    background-color: #f2f2f2;
-    color: #333;
-}
-</style>
-
-<div class="container">
-    <div id="ajcon1" class="chart" style="min-width: 250px; height: 250px; margin: 0 auto;"></div>
-    <div class="test-results">
-        <?php foreach ($result as $test) {
-            $m_min = explode("~~~", $test["m_min"]);
-            $m_max = explode("~~~", $test["m_max"]);
-            $f_min = explode("~~~", $test["f_min"]);
-            $f_max = explode("~~~", $test["f_max"]);
-            $conditions = explode("~~~", $test["cond"]);
-            echo "<table class='result-table'>";
-            echo "<thead>";
-            echo "<tr><th colspan='3'>" . $test["test_name"] . " - " . ucfirst($gender) . "</th></tr>";
-            echo "<tr class='header-row'>";
-            echo "<th>Condition</th>";
-            echo "<th>Min Value</th>";
-            echo "<th>Max Value</th>";
-            echo "</tr>";
-            echo "</thead>";
-            echo "<tbody>";
-            for ($i = 0;$i < count($conditions);$i++) {
-                echo "<tr>";
-                echo "<td>" . $conditions[$i] . "</td>";
-                if ($gender == "male") {
-                    $min_value = $m_min[$i] === "" ? "0" : $m_min[$i];
-                    $max_value = $m_max[$i] === "" ? "Infinity" : $m_max[$i];
-                } else {
-                    $min_value = $f_min[$i] === "" ? "0" : $f_min[$i];
-                    $max_value = $f_max[$i] === "" ? "Infinity" : $f_max[$i];
-                }
-                echo "<td>" . $min_value . "</td>";
-                echo "<td>" . $max_value . "</td>";
-                echo "</tr>";
-            }
-            echo "</tbody>";
-            echo "</table>";
-        } ?>
-    </div>
-</div>
-</div>
-
-<?php if (in_array(91, $parameter) and in_array(95, $parameter) and in_array(228, $parameter)) { ?>
+if ($_POST['popUp'] == "1") { ?>
     <script>
-        var chart = Highcharts.chart('ajcon1', {
-            colors: ['rgba(102, 204, 0, .8)', 'rgba(255, 224, 131, .8)'],
-            chart: {
-                type: 'areaspline'
-            },
-            title: {
-                text: '<?php echo "Blood Glucose"; ?>'
-            },
-
-            xAxis: {
-                type: 'datetime',
-                categories: [
-                    <?php echo implode(",", array_unique($testdate)); ?>
-                ],
-                plotBands: [{
-
-                }]
-            },
-            yAxis: {
-                /* max: 100,
-                min: 0,
-                 tickInterval: 25,*/
-                title: {
-                    text: ' '
-                }
-
-
-            },
-            tooltip: {
-                shared: true,
-                valueSuffix: ''
-            },
-            credits: {
-                enabled: false
-            },
-            plotOptions: {
-                spline: {
-                    fillOpacity: 0.8
-                }
-            },
-            exporting: {
-                buttons: {
-                    contextButton: {
-                        enabled: false
-                    }
-                }
-            },
-            series: [{
-                    name: '<?php echo $dashboard_data1[0]["title"]; ?>',
-
-                    data: [<?php echo implode(",", $results_91); ?>],
-                    showInLegend: false
-
-                },
-                {
-                    name: '<?php echo "Glucose - PP"; ?>',
-
-
-                    data: [<?php echo implode(",", $results_228); ?>],
-
-                    showInLegend: false
-
-                }
-            ]
-        }, function(chart) { // on complete
-            <?php if (!isset($results_91) && !isset($results_228) && $dashboard_data1[0]["title"] != "") { ?>
-                chart.renderer.text('No Data Available', 120, 95)
-                    .css({
-                        color: '#4572A7',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
-                    })
-                    .add();
-            <?php
-            } ?>
-        });
+        parent.popUpCopy("<?php echo urlencode($drugcontent); ?>", "<?php echo $SqlPresID; ?>", "<?php echo $_POST['countIndex']; ?>", "0");
     </script>
-    <script>
-        var chart = Highcharts.chart('ajcon2', {
-            colors: ['rgba(102, 204, 0, .8)', 'rgba(255, 224, 131, .8)'],
-            chart: {
-                type: 'areaspline'
-            },
-            title: {
-                text: '<?php echo "Glycosylated Haemoglobin (Hb A1C)"; ?>'
-            },
-
-            xAxis: {
-                type: 'datetime',
-                categories: [
-                    <?php echo implode(",", array_unique($testdate_2)); ?>
-                ],
-                plotBands: [{
-
-                }]
-            },
-            yAxis: {
-                /* max: 100,
-                min: 0,
-                 tickInterval: 25,*/
-                title: {
-                    text: ' '
-                }
-
-
-            },
-            tooltip: {
-                shared: true,
-                valueSuffix: ''
-            },
-            credits: {
-                enabled: false
-            },
-            plotOptions: {
-                spline: {
-                    fillOpacity: 0.8
-                }
-            },
-            exporting: {
-                buttons: {
-                    contextButton: {
-                        enabled: false
-                    }
-                }
-            },
-            series: [{
-                name: '<?php echo $dashboard_data1[0]["title"]; ?>',
-
-                data: [<?php echo implode(",", $results_95); ?>],
-                showInLegend: false
-
-            }]
-        }, function(chart) { // on complete
-            <?php if (!isset($results_95) && $dashboard_data1[0]["title"] != "") { ?>
-                chart.renderer.text('No Data Available', 120, 95)
-                    .css({
-                        color: '#4572A7',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
-                    })
-                    .add();
-            <?php
-            } ?>
-        });
-    </script>
-<?php
-} elseif ($parameter[0] == 276 and $parameter[1] == 204) { ?>
-
-    <script>
-        var chart = Highcharts.chart('ajcon1', {
-            colors: ['rgba(102, 204, 0, .8)', 'rgba(255, 224, 131, .8)'],
-            chart: {
-                type: 'areaspline'
-            },
-            title: {
-                text: '<?php echo "Blood Pressure"; ?>'
-            },
-
-            xAxis: {
-                type: 'datetime',
-                categories: [
-                    <?php echo implode(",", array_unique($testdate)); ?>
-                ],
-                plotBands: [{
-
-                }]
-            },
-            yAxis: {
-                /* max: 100,
-                min: 0,
-                 tickInterval: 25,*/
-                title: {
-                    text: ' '
-                }
-
-
-            },
-            tooltip: {
-                shared: true,
-                valueSuffix: ''
-            },
-            credits: {
-                enabled: false
-            },
-            plotOptions: {
-                spline: {
-                    fillOpacity: 0.8
-                }
-            },
-            exporting: {
-                buttons: {
-                    contextButton: {
-                        enabled: false
-                    }
-                }
-            },
-            series: [
-                {
-                    name: '<?php echo $dashboard_data1[1]["title"]; ?>',
-
-
-                    data: [<?php echo implode(",", $results_2); ?>],
-
-                    showInLegend: false
-
-                },
-                {
-                    name: '<?php echo $dashboard_data1[0]["title"]; ?>',
-
-                    data: [<?php echo implode(",", $results_1); ?>],
-                    showInLegend: false
-
-                }
-            ]
-        }, function(chart) { // on complete
-            <?php if (!isset($results_1) && !isset($results_2) && $dashboard_data1[0]["title"] != "") { ?>
-                chart.renderer.text('No Data Available', 120, 95)
-                    .css({
-                        color: '#4572A7',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
-                    })
-                    .add();
-            <?php
-            } ?>
-        });
-    </script>
-<?php
-} elseif (count($parameter) == 1) {
-    // print_r($testdate);
-    // $testdate = array_map(function ($date) {
-    //     return trim($date, "'");
-    // }, $testdate);
-    // function compareDates($a, $b)
-    // {
-    //     $dateA = DateTime::createFromFormat('M-Y', $a);
-    //     $dateB = DateTime::createFromFormat('M-Y', $b);
-    //     if ($dateA == $dateB) {
-    //         return 0;
-    //     }
-    //     return ($dateA < $dateB) ? -1 : 1;
-    // }
-    // usort($testdate, 'compareDates');
-    // $testdate = array_map(function ($item) {
-    //     return "'" . $item . "'";
-    // }, $testdate);
-    // print_r($testdate);
-
-    ?>
-    <script>
-        var chart = Highcharts.chart('ajcon1', {
-            colors: ['rgba(102, 204, 0, .8)', 'rgba(255, 224, 131, .8)'],
-            chart: {
-                type: 'areaspline'
-            },
-            title: {
-                text: '<?php echo $_POST["test_name"]; ?>'
-            },
-
-            xAxis: {
-                type: 'datetime',
-                categories: [
-                    <?php echo implode(",", $testdate); ?>
-                ],
-                plotBands: [{
-
-                }]
-            },
-            yAxis: {
-                /* max: 100,
-                min: 0,
-                 tickInterval: 25,*/
-                title: {
-                    text: ' '
-                }
-
-
-            },
-            tooltip: {
-                shared: true,
-                valueSuffix: ''
-            },
-            credits: {
-                enabled: false
-            },
-            plotOptions: {
-                spline: {
-                    fillOpacity: 0.8
-                }
-            },
-            exporting: {
-                buttons: {
-                    contextButton: {
-                        enabled: false
-                    }
-                }
-            },
-            series: [{
-                name: '<?php echo $dashboard_data1[0]["title"]; ?>',
-
-
-                data: [<?php echo implode(",", $allResults); ?>],
-
-                showInLegend: false
-
-            }]
-        }, function(chart) { // on complete
-            <?php if (!isset($allResults) && $dashboard_data1[0]["title"] != "") { ?>
-                chart.renderer.text('No Data Available', 120, 95)
-                    .css({
-                        color: '#4572A7',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
-                    })
-                    .add();
-            <?php
-            } ?>
-        });
-    </script>
-<?php
-} elseif (count($parameter) == 2) { ?>
-
-    <script>
-        var chart = Highcharts.chart('ajcon1', {
-            colors: ['rgba(102, 204, 0, .8)', 'rgba(255, 224, 131, .8)'],
-            chart: {
-                type: 'areaspline'
-            },
-            title: {
-                text: '<?php echo "Blood Glucose"; ?>'
-            },
-
-            xAxis: {
-                type: 'datetime',
-                categories: [
-                    <?php echo implode(",", array_unique($testdate)); ?>
-                ],
-                plotBands: [{
-
-                }]
-            },
-            yAxis: {
-                /* max: 100,
-                min: 0,
-                 tickInterval: 25,*/
-                title: {
-                    text: ' '
-                }
-
-
-            },
-            tooltip: {
-                shared: true,
-                valueSuffix: ''
-            },
-            credits: {
-                enabled: false
-            },
-            plotOptions: {
-                spline: {
-                    fillOpacity: 0.8
-                }
-            },
-            exporting: {
-                buttons: {
-                    contextButton: {
-                        enabled: false
-                    }
-                }
-            },
-            series: [{
-                    name: '<?php echo $dashboard_data1[0]["title"]; ?>',
-
-                    data: [<?php echo implode(",", $results_1); ?>],
-                    showInLegend: false
-
-                },
-                {
-                    name: '<?php echo $dashboard_data11[0]["title"]; ?>',
-
-
-                    data: [<?php echo implode(",", $results_2); ?>],
-
-                    showInLegend: false
-
-                }
-            ]
-        }, function(chart) { // on complete
-            <?php if (!isset($results_1) && !isset($results_2) && $dashboard_data1[0]["title"] != "") { ?>
-                chart.renderer.text('No Data Available', 120, 95)
-                    .css({
-                        color: '#4572A7',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
-                    })
-                    .add();
-            <?php
-            } ?>
-        });
-    </script>
-
-
-<?php
-} else {
-    $formattedResults = "";
-    $idToTitle = [];
-    foreach ($dashboard_data1 as $data) {
-        $idToTitle[$data[0]["id"]] = $data[0]["title"];
-    }
-    foreach ($finalResults as $id => $result) {
-        $data = [];
-        foreach ($result["results"] as $res) {
-            $data[] = $res[0];
-        }
-        $title = isset($idToTitle[$id]) ? $idToTitle[$id] : "";
-        $formattedResults .= "
-    {
-        name: '$title',
-        data: [" . implode(",", $data) . "],
-        showInLegend: false
-    },";
-    }
-    $formattedResults = rtrim($formattedResults, ",");
-    ?>
-    <script>
-        var chart = Highcharts.chart('ajcon1', {
-            colors: ['rgba(102, 204, 0, .8)', 'rgba(255, 224, 131, .8)'],
-            chart: {
-                type: 'areaspline'
-            },
-            title: {
-                text: '<?php echo $_POST["test_name"]; ?>'
-            },
-
-            xAxis: {
-                type: 'datetime',
-                categories: [
-                    <?php echo implode(",", array_unique($testdate)); ?>
-                ],
-                plotBands: [{
-
-                }]
-            },
-            yAxis: {
-                /* max: 100,
-                min: 0,
-                 tickInterval: 25,*/
-                title: {
-                    text: ' '
-                }
-
-
-            },
-            tooltip: {
-                shared: true,
-                valueSuffix: ''
-            },
-            credits: {
-                enabled: false
-            },
-            plotOptions: {
-                spline: {
-                    fillOpacity: 0.8
-                }
-            },
-            exporting: {
-                buttons: {
-                    contextButton: {
-                        enabled: false
-                    }
-                }
-            },
-            series: [<?php echo $formattedResults; ?>]
-        }, function(chart) { // on complete
-            <?php if (!isset($results) && !isset($results) && $dashboard_data1[0]["title"] != "") { ?>
-                chart.renderer.text('No Data Available', 120, 95)
-                    .css({
-                        color: '#4572A7',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
-                    })
-                    .add();
-            <?php
-            } ?>
-        });
-    </script>
-<?php
-}
+    <?php } else {
+        if ($ohcs == '1' && !empty($case_id)) { ?>
+        <script>
+            document.location.href = "add-registry.php?id=<?php echo $case_id; ?>";
+        </script>
+    <?php    } elseif ($saveRdraft == "Save" || $saveRdraft == "AgainDraftSavePresc" || $saveRdraft == "TemplateSave") { ?>
+        <script>
+            var username = '<?php echo $username; ?>';
+            document.location.href = "view-ohc-prescription.php?suser=" + username;
+        </script>
+    <?php } elseif ($saveRdraft == "Draft" || $saveRdraft == "AgainDraftPresc" || $saveRdraft == "DraftPrescs") { ?>
+        <script>
+            document.location.href = "DraftPrescription.php";
+        </script>
+    <?php } elseif ($saveRdraft == "DraftPresc") { ?>
+        <script>
+            document.location.href = "view-ohc-prescription.php";
+        </script>
+    <?php } elseif ($saveRdraft == "DraftPrescs") { ?>
+        <script>
+            var id = '<?php echo $prescriptionId; ?>';
+            document.location.href = "DraftPrescription.php?presid=" + id;
+        </script>
+    <?php } elseif ($saveRdraft == "CopyPresc") { ?>
+        <script>
+            var id = '<?php echo $prescriptionId; ?>';
+            document.location.href = "view-ohc-prescription.php?id=" + id;
+        </script>
+    <?php } elseif ($saveRdraft == "TemplateOnly") { ?>
+        <script>
+            document.location.href = "scrAddPrescription.php?id=0";
+        </script>
+    <?php } elseif ($saveRdraft == "addtest") { ?>
+        <script>
+            var username = '<?php echo $username; ?>';
+            var id = '<?php echo $prescriptionId; ?>';
+            document.location.href = "prescription-test.php?suser=<?php echo $username; ?>&presid=<?php echo $SqlPresID; ?>&add";
+        </script>
+    <?php } else { ?>
+        <script>
+            var id = '<?php echo $SqlPresID; ?>';
+            document.location.href = "scrAddPrescription.php?err=ESD&id=" + id;
+        </script>
+<?php }
+    } ?>

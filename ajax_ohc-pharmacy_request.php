@@ -242,8 +242,9 @@ Prescription ID: <?php echo $user_code."/".$from_datep."/000".$prescriptionMaini
             //where p.prescription_id =".$id." ";
             $prescriptiondetail = $prescriptionDetailObj->listDirectQuery("select p.*,pp.id as pid,oh.name as phname,md.drug_name,md1.drug_name as substitude_drugname,ds.doctype as drugtypes,dss.doctype as drugintakeconditions from prescription_detail p left outer join master_drugs md on md.id=p.drugs_id left outer join master_drugs md1 on md1.id=p.substitude_drug left outer join doctype_static ds on ds.id=p.drugtype left outer join doctype_static dss on dss.id=p.drugintakecondition left outer join prescription pp on pp.id=p.prescription_id left outer join ohc_pharmay oh on oh.id=pp.fav_pharmacy
 where p.prescription_id =".$id."  ");
-echo "select p.*,pp.id as pid,oh.name as phname,md.drug_name,md1.drug_name as substitude_drugname,ds.doctype as drugtypes,dss.doctype as drugintakeconditions from prescription_detail p left outer join master_drugs md on md.id=p.drugs_id left outer join master_drugs md1 on md1.id=p.substitude_drug left outer join doctype_static ds on ds.id=p.drugtype left outer join doctype_static dss on dss.id=p.drugintakecondition left outer join prescription pp on pp.id=p.prescription_id left outer join ohc_pharmay oh on oh.id=pp.fav_pharmacy
-where p.prescription_id =".$id."  ";
+// echo "select p.*,pp.id as pid,oh.name as phname,md.drug_name,md1.drug_name as substitude_drugname,ds.doctype as drugtypes,dss.doctype as drugintakeconditions from prescription_detail p left outer join master_drugs md on md.id=p.drugs_id left outer join master_drugs md1 on md1.id=p.substitude_drug left outer join doctype_static ds on ds.id=p.drugtype left outer join doctype_static dss on dss.id=p.drugintakecondition left outer join prescription pp on pp.id=p.prescription_id left outer join ohc_pharmay oh on oh.id=pp.fav_pharmacy
+// where p.prescription_id =".$id."  ";
+$i = 0;
             if($prescriptiondetail != 0) {
 
                 $getrowcount = count($prescriptiondetail);
@@ -329,11 +330,14 @@ where p.prescription_id =".$id."  ";
     ?></div>
 <div class="prescription-td-table" style="width:8%;"> 
 <?php  //if ($listprescriptiondetail['remained_medicine']!="0"){
+// echo "<pre>";
 // print_r($listprescriptiondetail);
+// echo "</pre>";
 $sql = "SELECT SUM(cur_availability) as total_availability FROM pharmacy_stock_detail 
-        WHERE drug_template_id = " . $listprescriptiondetail[$i]['drug_template_id'] . " 
+        WHERE drug_template_id = " . $listprescriptiondetail['drug_template_id'] . " 
         AND phar_ids = " . $_POST['phrid'];
-        //echo $sql;
+        echo $sql;
+echo $prescriptionDetail->listDirectQuery($sql)[0]['total_availability'];
         // echo "<pre>";
         // print_r($listprescriptiondetail);
         // echo "</pre>";
@@ -346,7 +350,7 @@ $sql = "SELECT SUM(cur_availability) as total_availability FROM pharmacy_stock_d
     // $drugdetails = $prescriptionDetailObj->listDirectQuery($msql);
     // if(!empty($drugdetails)) {
     //     $arr[] = '';
-    //     //$mekey="";
+    ///     //$mekey="";
 
     //     foreach($drugdetails as $list) {
     //         $dname = $list['drug_name'];
